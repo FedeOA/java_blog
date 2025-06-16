@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test parametrizados con JUnit 5 y Mockito</title>
+
+    <!-- Fuente -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Estilo base highlight.js -->
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+
+    <link rel="stylesheet" href="../../estilos.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Test parametrizados con JUnit 5 y Mockito</h1>
+    </header>
+
+    <nav>
+      <a href="testing.html">← Volver a Testing</a>
+    </nav>
+
+    <main>
+      <h2>Introducción</h2>
+
+      <p>
+        En el desarrollo de software moderno, las pruebas automatizadas son una
+        herramienta fundamental para garantizar la calidad, la mantenibilidad y
+        la evolución segura del código.
+      </p>
+
+      <p>
+        En el ecosistema Java, JUnit 5 y Mockito se han consolidado como dos de
+        las bibliotecas más potentes y flexibles para escribir pruebas unitarias
+        efectivas.
+      </p>
+
+      <p>
+        Una de las características más útiles de JUnit 5 es su soporte para
+        tests parametrizados, que nos permite ejecutar el mismo caso de prueba
+        con diferentes entradas y resultados esperados.
+      </p>
+
+      <p>
+        Esta funcionalidad no solo reduce la duplicación de código, sino que
+        también mejora la cobertura y claridad de nuestras pruebas.
+      </p>
+
+      <p>
+        Cuando se combina con Mockito, podemos además simular comportamientos
+        complejos, permitiendo probar componentes en aislamiento sin depender de
+        sus colaboradores reales.
+      </p>
+
+      <p>
+        En este post exploraremos cómo aprovechar los tests parametrizados en
+        JUnit 5, cómo integrarlos con Mockito para simular diferentes
+        escenarios, y cómo esta combinación puede ayudarte a escribir pruebas
+        más expresivas, concisas y robustas.
+      </p>
+      <br />
+      <h3>
+        1. Agregar las dependencias al proyecto en el <code>pom.xml</code>
+      </h3>
+
+      <pre><code class="xml">
+        &lt;dependency&gt;
+          &lt;groupId&gt;org.mockito&lt;/groupId&gt;
+          &lt;artifactId&gt;mockito-core&lt;/artifactId&gt;
+          &lt;version&gt;5.18.0&lt;/version&gt;
+          &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+          &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
+          &lt;artifactId&gt;junit-jupiter-api&lt;/artifactId&gt;
+          &lt;version&gt;5.12.2&lt;/version&gt;
+          &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+         &lt;dependency&gt;
+          &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
+          &lt;artifactId&gt;junit-jupiter-params&lt;/artifactId&gt;
+          &lt;version&gt;5.9.3&lt;/version&gt;
+          &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+      </code></pre>
+      <br />
+      <h3>
+        2. Veamos el siguiente ejemplo..
+      </h3>
+
+      <div class="subtitulo-h4">
+            <h4>Tenemos la clase <code>Course</code></h4>
+            <pre><code class="language-java">
+              public class Course {
+
+                  private Long id;
+                  private String name;
+                  private String author;
+                  private String category;
+                  private String level;
+
+                  public Course(Long id, String name, String author, String category, String level) {
+                      this.id = id;
+                      this.name = name;
+                      this.author = author;
+                      this.category = category;
+                      this.level = level;
+                  }
+                ...
+                ...
+            </code></pre>
+            <br />
+            <h4>Generamos los siguientes enums para almacenar los valores válidos para los campos category y level</h4>
+      
+            <pre><code class="language-java">
+              public enum CategoryEnum {
+
+                TECHNOLOGY("TECHNOLOGY",4),
+                HISTORY("HISTORY",1),
+                TRADING("TRADING",5),
+                COACHING("COACHING",3),
+                PHILOSOPHY("PHILOSOPHY",2);
+                ...
+                ...
+            </code></pre>
+
+            <pre><code class="language-java">
+              public enum LevelEnum {
+
+                BASIC("BASIC",1),
+                INTERMEDIATE("INTERMEDIATE",2),
+                ADVANCED("ADVANCED",3);
+                ...
+                ...
+            </code></pre>
+            <br />
+            <h4> Generamos una clase de configuración para declarar 2 beans para poder obtener los valores válidos para las categorias y los niveles</h4>
+            <pre><code class="languaje-java">
+              @Configuration
+              public class CourseConfiguration {
+
+                  @Bean
+                  public Map<String, Integer> courseCategories() {
+                      Map<String, Integer> categories = new HashMap<>();
+                      for (CategoryEnum c : CategoryEnum.values()) {
+                          categories.put(c.getName(), c.getCategory());
+                      }
+                      return categories;
+                  }
+
+                  @Bean
+                  public Map<String, Integer> courseLevels() {
+                      Map<String, Integer> levels = new HashMap<>();
+                      for (LevelEnum l : LevelEnum.values()) {
+                          levels.put(l.getLevel(), l.getLevelCode());
+                      }
+                      return levels;
+                  }
+              }
+            </code></pre>
+            <br />
+            <h4>Luego generamos un servicio simple que nos permite crear cursos y calcular el precio del curso</h4>
+            <pre><code class="language-java">
+              @Service
+              public class CourseService {
+
+                  private final Map<String, Integer> courseCategories;
+                  private final Map<String, Integer> courseLevels;
+                  private static final Double basePrice = 10.99;
+
+                  public CourseService(Map<String, Integer> courseCategories,
+                                      Map<String, Integer> courseLevels) {
+                      this.courseCategories = courseCategories;
+                      this.courseLevels = courseLevels;
+                  }
+
+
+                  public Course createCourse(String name,String author,String category,String level) throws Exception {
+
+                      if (category==null || !isValidCategory(category)) {
+                          throw  new Exception("categoria invalida");
+                      }
+
+                      if (level==null || !isValidLevel(level)) {
+                          throw new Exception("level invalido");
+                      }
+
+                      if(name == null ){
+                          throw new SerialException("name invalido");
+                      }
+
+                      if(author == null){
+                          throw new SerialException("author invalido");
+                      }
+
+                      Long id = (long)(Math.random() * 10);
+
+                      return new Course(id,name,author,category,level);
+                  }
+
+                  public Double calculatePrice(Course course) throws Exception {
+
+                      int category = courseCategories.get(course.getCategory());
+                      int level = courseLevels.get(course.getLevel());
+
+                      return basePrice * category * level;
+                  }
+
+                  private boolean isValidCategory(String category){
+                      return courseCategories.containsKey(category);
+                  }
+
+                  private boolean isValidLevel(String level){
+                      return courseLevels.containsKey(level);
+                  }
+              }
+            </code></pre>
+            <br />
+            <h4>Ahora pasemos a nuestros tests..</h4>
+            <h4>Nosotros quisieramos evaluar para nuestros casos felices la posibilidad de crear cursos para todas las combinaciones posibles de categorias y niveles..</h4>
+            <h4>Si procedemos a testear nuestro servicio sin parametrizaciones nos quedaria algo como: </h4>
+            <code><pre>
+                @Test
+                void createCourse_Technology_Basic_Test() throws Exception {
+
+                    Course course = courseService.createCourse("Java for Beginners","Dani Gateway",CategoryEnum.TECHNOLOGY.getName(), LevelEnum.BASIC.getLevel());
+
+                    assertNotNull(course);
+                    assertEquals(CategoryEnum.TECHNOLOGY.getName(), course.getCategory());
+                    assertEquals(LevelEnum.BASIC.getLevel(), course.getLevel());
+
+                    double expectedPrice = 10.99 * CategoryEnum.TECHNOLOGY.getCategory() * LevelEnum.BASIC.getLevelCode();
+                    assertEquals(expectedPrice, courseService.calculatePrice(course), 0.001);
+                }
+
+                @Test
+                void createCourse_Technology_Intermediate_Test() throws Exception {
+
+                    Course course = courseService.createCourse("Java Advanced","Dani Gateway",CategoryEnum.TECHNOLOGY.getName(), LevelEnum.INTERMEDIATE.getLevel());
+
+                    assertNotNull(course);
+                    assertEquals(CategoryEnum.TECHNOLOGY.getName(), course.getCategory());
+                    assertEquals(LevelEnum.INTERMEDIATE.getLevel(), course.getLevel());
+
+                    double expectedPrice = 10.99 * CategoryEnum.TECHNOLOGY.getCategory() * LevelEnum.INTERMEDIATE.getLevelCode();
+                    assertEquals(expectedPrice, courseService.calculatePrice(course), 0.001);
+                }
+
+                .....
+            </code></pre>
+          </br>
+          <h4>Ahora veamos como podemos brindar una solución menos verbosa y mas limpia utilizando parametrizaciones</h4>
+          <h4>En primer lugar generamos un método estático que nos devuelve un <code>Stream&lt;Arguments&gt;</code> que proovera a nuestro test con todas las combinaciones de niveles y categorías</h4>
+
+          <code><pre>
+            static Stream<Arguments> categoryLevelProvider() {
+                    return CategoryEnum.values().length == 0 || LevelEnum.values().length == 0
+                            ? Stream.empty()
+                            : Stream.of(CategoryEnum.values()).flatMap(cat ->
+                            Stream.of(LevelEnum.values()).map(level ->
+                                    org.junit.jupiter.params.provider.Arguments.of(cat, level)
+                            )
+                    );
+                }
+          </code></pre>
+          </br>
+          <h4>Luego podemos crear nuestro test parametrizado.</h4>
+          <h4><code>@ParameterizedTest(name = "createCourse con categoría={0} y nivel={1}")</code> nos permite nombrar dinámicamente nuestros test, donde los argumentos 0 y 1 serán los nombres de la categoria y el nivel respectivamente</h4>
+          <h4><code>@MethodSource("categoryLevelProvider")</code> nos permite ingestar a partir de nuestro método categoryLevelProvider los argumentos que representan las combinaciones posibles</h4>
+          <code><pre>
+            @ParameterizedTest(name = "createCourse con categoría={0} y nivel={1}")
+            @MethodSource("categoryLevelProvider")
+            void createCourse_Parametrized(CategoryEnum category, LevelEnum level) throws Exception {
+                Course course = courseService.createCourse(
+                        "Curso " + category.getName() + "-" + level.getLevel(),
+                        "Autor Test",
+                        category.getName(),
+                        level.getLevel()
+                );
+
+                assertNotNull(course);
+                assertEquals(category.getName(), course.getCategory());
+                assertEquals(level.getLevel(), course.getLevel());
+                
+                double expectedPrice = 10.99 * category.getCategory() * level.getLevelCode();
+                assertEquals(expectedPrice, courseService.calculatePrice(course), 0.001);
+            }
+          </code></pre>
+        </br>
+        <h4>De de la misma forma podríamos generar un test parametrizado para nuestros casos de excepción. Como vemos esta alternativa resulta mucho mas limpia, menos verboza y rápida de desarrollar</h4>
+      </div>
+      </br>
+      <h4>Espero que les haya gustado y sido util.</h4>
+
+    </main>
+    
+
+    <footer>
+      <p>© 2025 Federico Oscar Acosta</p>
+    </footer>
+
+    <!-- Script highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      // Inicializar highlight.js
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

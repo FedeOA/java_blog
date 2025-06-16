@@ -1,0 +1,140 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  font-family: 'Fira Code', monospace;
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+/* Contenedores principales */
+header, nav, main, footer {
+  padding: 1rem 2rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+/* Hacer que el main crezca y empuje el footer hacia abajo */
+main {
+  flex: 1;
+}
+
+/* Header */
+header {
+  border-bottom: 1px solid #30363d;
+}
+
+/* Navegación */
+nav a {
+  color: #58a6ff;
+  text-decoration: none;
+  margin-right: 1rem;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Tarjetas de posts */
+.post-card {
+  background-color: #161b22;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+}
+
+.post-card h3 {
+  margin-top: 0;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid #30363d;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+/* Animación Próximamente */
+.coming-soon {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 1.5rem;
+  font-family: 'Fira Code', monospace;
+  animation: fadeIn 1.5s ease-in-out infinite alternate;
+  color: #ccc;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.3;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+/* animacion escribiendo*/
+.escribiendo {
+  font-family: 'Fira Code', monospace;
+  font-size: 1rem;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: none; /* sin cursor */
+  width: 0;
+  animation: typing 3s steps(60, end) forwards;
+}
+
+/* Retrasos para que aparezcan en orden */
+.delay-1 { animation-delay: 0s; }
+.delay-2 { animation-delay: 3.2s; }
+.delay-3 { animation-delay: 6.4s; }
+.delay-4 { animation-delay: 9.2s; }
+.delay-5 { animation-delay: 12.4s; }
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%; /* o podés usar ch si querés precisión por caracter */
+  }
+}
+
+
+
+
+
+/* Estilos para resaltar etiquetas XML en verde brillante */
+.hljs-tag {
+  color: #7CFC00 !important; /* verde brillante */
+  font-weight: bold;
+}
+
+.hljs-attr {
+  color: #9cdcfe;
+}
+
+.hljs-string {
+  color: #ce9178;
+}
+
+pre {
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.subtitulo-h4 {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
