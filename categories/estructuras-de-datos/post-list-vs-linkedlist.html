@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArrayList vs Linked List</title>
+
+    <!-- Fuente -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Estilo base highlight.js -->
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+
+    <link rel="stylesheet" href="../../estilos.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>ArrayList vs LinkedList</h1>
+    </header>
+
+    <nav>
+      <a href="estructuras.html">← Volver a Estructuras de datos</a>
+    </nav>
+
+    <main>
+      <h2>Introducción</h2>
+
+      <p>
+        Si programaste en Java más de cinco minutos, seguramente usaste una lista.
+        Y si llegaste a este post, probablemente te preguntaste más de una vez:
+        ¿cuál es la diferencia real entre un ArrayList y un LinkedList?
+      </p>
+
+      <p>
+        A simple vista parecen intercambiables, pero por dentro funcionan de manera muy distinta.
+        Hoy vamos a desarmarlas y ver cuál conviene usar en cada situación.
+      </p>
+
+      <p>
+        Tanto ArrayList como LinkedList implementan la interfaz List.
+        Esto significa que ambas comparten el mismo contrato básico —almacenar elementos
+        de manera ordenada y permitir duplicados— pero cada una lo implementa de forma diferente.
+      </p>
+
+      <p>
+        La interfaz List hereda a su vez de la interfaz Collection, el núcleo del framework
+        de colecciones de Java. Gracias a esta jerarquía, podemos trabajar de forma genérica
+        y elegir la implementación que mejor se adapta al rendimiento que necesitamos.
+      </p>
+
+      <h3>
+  1.    Entendiendo las diferencias conceptuales.
+      </h3>
+
+      <p>
+        <strong>ArrayList</strong> está implementado como un arreglo dinámico, donde los elementos
+        se almacenan de forma contigua en memoria. Esto permite un acceso rápido por índice,
+        pero hace costosas las inserciones y eliminaciones en el medio de la lista.
+      </p>
+
+      <p>
+        Por otro lado, <strong>LinkedList</strong> es una lista doblemente enlazada, en la que cada nodo
+        contiene referencias tanto al nodo anterior como al siguiente, permitiendo insertar
+        y eliminar elementos de forma eficiente sin mover el resto de los nodos.
+      </p>
+
+      <!-- Gráfico comparativo ArrayList vs LinkedList (con flechas de colores) -->
+      <div style="margin-top: 20px;">
+        <h4>Comparación visual</h4>
+
+        <!-- ArrayList -->
+        <p><strong>ArrayList (arreglo dinámico)</strong></p>
+        <svg width="600" height="80">
+          <rect x="10" y="20" width="80" height="40" fill="#d0e6ff" stroke="#000" />
+          <rect x="90" y="20" width="80" height="40" fill="#d0e6ff" stroke="#000" />
+          <rect x="170" y="20" width="80" height="40" fill="#d0e6ff" stroke="#000" />
+          <rect x="250" y="20" width="80" height="40" fill="#d0e6ff" stroke="#000" />
+          <rect x="330" y="20" width="80" height="40" fill="#d0e6ff" stroke="#000" />
+
+          <text x="25" y="45" font-size="14">0</text>
+          <text x="105" y="45" font-size="14">1</text>
+          <text x="185" y="45" font-size="14">2</text>
+          <text x="265" y="45" font-size="14">3</text>
+          <text x="345" y="45" font-size="14">4</text>
+        </svg>
+
+        <!-- LinkedList -->
+        <p style="margin-top: 25px;"><strong>LinkedList (lista doblemente enlazada)</strong></p>
+
+        <svg width="700" height="140">
+          <rect x="10" y="40" width="120" height="50" fill="#ffe7cc" stroke="#000" />
+          <text x="25" y="70" font-size="14">Nodo 1</text>
+
+          <rect x="170" y="40" width="120" height="50" fill="#ffe7cc" stroke="#000" />
+          <text x="185" y="70" font-size="14">Nodo 2</text>
+
+          <rect x="330" y="40" width="120" height="50" fill="#ffe7cc" stroke="#000" />
+          <text x="345" y="70" font-size="14">Nodo 3</text>
+
+          <!-- next -->
+          <line x1="130" y1="65" x2="170" y2="65"
+                stroke="#007bff" stroke-width="2" marker-end="url(#arrow-blue)" />
+          <line x1="290" y1="65" x2="330" y2="65"
+                stroke="#007bff" stroke-width="2" marker-end="url(#arrow-blue)" />
+
+          <!-- prev -->
+          <line x1="170" y1="85" x2="130" y2="85"
+                stroke="#ff7f00" stroke-width="2" marker-end="url(#arrow-orange)" />
+          <line x1="330" y1="85" x2="290" y2="85"
+                stroke="#ff7f00" stroke-width="2" marker-end="url(#arrow-orange)" />
+
+          <defs>
+            <marker id="arrow-blue" markerWidth="10" markerHeight="10"
+                    refX="4" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#007bff" />
+            </marker>
+
+            <marker id="arrow-orange" markerWidth="10" markerHeight="10"
+                    refX="4" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#ff7f00" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- (Gráficos existentes sin cambios) -->
+
+      <h3>2. Métodos comunes y su rendimiento</h3>
+
+      <!-- ================= ADD(element) ================= -->
+      <h4>2.1 add(element) – Agregar al final</h4>
+
+      <pre><code class="language-java">list.add(element);</code></pre>
+
+      <p>
+        En <strong>ArrayList</strong>, esta operación agrega el elemento al final del arreglo interno.
+        Si el arreglo tiene espacio disponible, la inserción es directa. En caso contrario,
+        se crea un nuevo arreglo más grande y se copian todos los elementos existentes.
+      </p>
+
+      <p>
+        En <strong>LinkedList</strong>, se crea un nuevo nodo y se enlaza con el último nodo de la lista,
+        actualizando únicamente las referencias <code>prev</code> y <code>next</code>.
+      </p>
+
+      <p>
+        <strong>Complejidad:</strong><br />
+        ArrayList → O(1) amortizado<br />
+        LinkedList → O(1)
+      </p>
+
+      <p>
+        <strong>En la práctica:</strong> aunque LinkedList tenga O(1) real,
+        ArrayList suele ser más rápido debido a su mejor uso de memoria y mayor eficiencia
+        en la caché del procesador.
+      </p>
+
+      <!-- ================= ADD(index, element) ================= -->
+      <h4>2.2 add(index, element) – Insertar en una posición</h4>
+
+      <pre><code class="language-java">list.add(index, element);</code></pre>
+
+      <p>
+        En <strong>ArrayList</strong>, todos los elementos desde la posición indicada deben
+        desplazarse una posición hacia la derecha para liberar espacio.
+      </p>
+
+      <p>
+        En <strong>LinkedList</strong>, primero se recorre la lista hasta el índice indicado y luego
+        se ajustan los enlaces del nuevo nodo.
+      </p>
+
+      <p>
+        <strong>Complejidad:</strong><br />
+        ArrayList → O(n)<br />
+        LinkedList → O(n) (por el recorrido)
+      </p>
+
+      <p>
+        <strong>En la práctica:</strong> ambas son costosas, pero LinkedList evita mover elementos,
+        lo que puede ser ventajoso si ya se tiene una referencia al nodo.
+      </p>
+
+      <!-- ================= GET(index) ================= -->
+      <h4>2.3 get(index) – Acceso por índice</h4>
+
+      <pre><code class="language-java">list.get(index);</code></pre>
+
+      <p>
+        <strong>ArrayList</strong> accede directamente a la posición del arreglo interno,
+        lo que hace que la operación sea inmediata.
+      </p>
+
+      <p>
+        <strong>LinkedList</strong> debe recorrer la lista nodo por nodo hasta llegar al índice solicitado.
+      </p>
+
+      <p>
+        <strong>Complejidad:</strong><br />
+        ArrayList → O(1)<br />
+        LinkedList → O(n)
+      </p>
+
+      <p>
+        <strong>En la práctica:</strong> ArrayList es ampliamente superior para accesos aleatorios
+        y escenarios de lectura intensiva.
+      </p>
+
+      <!-- ================= REMOVE(index) ================= -->
+      <h4>2.4 remove(index) – Eliminación por índice</h4>
+
+      <pre><code class="language-java">list.remove(index);</code></pre>
+
+      <p>
+        En <strong>ArrayList</strong>, al eliminar un elemento, todos los elementos posteriores
+        deben desplazarse una posición hacia la izquierda.
+      </p>
+
+      <p>
+        En <strong>LinkedList</strong>, se eliminan las referencias del nodo y se ajustan los enlaces
+        del nodo anterior y siguiente.
+      </p>
+
+      <p>
+        <strong>Complejidad:</strong><br />
+        ArrayList → O(n)<br />
+        LinkedList → O(n)
+      </p>
+
+      <p>
+        <strong>En la práctica:</strong> LinkedList resulta más eficiente cuando se realizan
+        muchas eliminaciones en el medio de la lista.
+      </p>
+
+      <!-- ================= ITERATION ================= -->
+      <h4>2.5 Recorrido de la lista</h4>
+
+      <pre><code class="language-java">for (String e : list) {
+    // procesar elemento
+}</code></pre>
+
+      <p>
+        En <strong>ArrayList</strong>, los elementos están almacenados de forma contigua,
+        lo que permite un recorrido muy eficiente.
+      </p>
+
+      <p>
+        En <strong>LinkedList</strong>, el recorrido implica seguir referencias entre nodos,
+        lo que genera más saltos de memoria.
+      </p>
+
+      <p>
+        <strong>Complejidad:</strong><br />
+        Ambas → O(n)
+      </p>
+
+      <p>
+        <strong>En la práctica:</strong> ArrayList suele ser más rápido al recorrer,
+        especialmente en listas grandes.
+      </p>
+        
+  <br />
+
+  <h3>3. Ejemplo práctico: simulación de atención en un hospital</h3>
+
+    <p>
+      Para llevar las diferencias entre <strong>ArrayList</strong> y
+      <strong>LinkedList</strong> a un escenario concreto, vamos a modelar
+      la atención de pacientes en un hospital.
+    </p>
+
+    <p>
+      El sistema maneja tres estructuras internas, cada una con un objetivo claro:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Urgencias</strong>: se atienden primero y siguen una política
+        <strong>LIFO</strong> (el último en llegar es el primero en ser atendido).
+      </li>
+      <li>
+        <strong>Cola normal</strong>: se atiende solo si no hay urgencias y sigue
+        una política <strong>FIFO</strong> (orden de llegada).
+      </li>
+      <li>
+        <strong>Agenda</strong>: una vista general de todos los pacientes en espera,
+        optimizada para lectura y recorrido.
+      </li>
+    </ul>
+
+    <p>
+      El médico siempre prioriza las urgencias. Solo cuando esta cola queda vacía,
+      comienza a atender a los pacientes de la cola normal.
+    </p>
+
+    <hr />
+
+    <h4>3.1 Clase Paciente</h4>
+
+    <pre><code class="language-java">
+    public class Paciente {
+
+        private String nombre;
+
+        public Paciente(String nombre) {
+            this.nombre = nombre;
+        }
+
+        public String getNombre() {
+            return nombre;
+        }
+
+        @Override
+        public String toString() {
+            return nombre;
+        }
+    }
+    </code></pre>
+
+    <hr />
+
+    <h4>3.2 Clase Hospital</h4>
+
+    <p>
+      El hospital utiliza <strong>LinkedList</strong> para ambas colas de atención,
+      ya que permiten inserciones y eliminaciones eficientes en los extremos.
+      La <strong>agenda</strong> se implementa con <strong>ArrayList</strong>,
+      ya que está orientada principalmente a operaciones de lectura.
+    </p>
+
+    <pre><code class="language-java">
+    import java.util.ArrayList;
+    import java.util.Deque;
+    import java.util.LinkedList;
+    import java.util.List;
+
+    public class Hospital {
+
+        // LIFO - urgencias
+        private Deque&lt;Paciente&gt; urgencias = new LinkedList<>();
+
+        // FIFO - atención normal
+        private Deque&lt;Paciente&gt; colaNormal = new LinkedList<>();
+
+        // Vista de lectura
+        private List&lt;Paciente&gt; agenda = new ArrayList<>();
+
+        public void registrarUrgencia(Paciente paciente) {
+            urgencias.push(paciente);   // LIFO
+            agenda.add(paciente);
+            System.out.println("Urgencia registrada: " + paciente);
+        }
+
+        public void registrarPacienteNormal(Paciente paciente) {
+            colaNormal.addLast(paciente); // FIFO
+            agenda.add(paciente);
+            System.out.println("Paciente agregado a cola normal: " + paciente);
+        }
+
+        public void atenderPaciente() {
+            Paciente atendido;
+
+            if (!urgencias.isEmpty()) {
+                atendido = urgencias.pop();
+                System.out.println("Atendiendo URGENCIA (LIFO): " + atendido);
+            } else if (!colaNormal.isEmpty()) {
+                atendido = colaNormal.removeFirst();
+                System.out.println("Atendiendo paciente normal (FIFO): " + atendido);
+            } else {
+                System.out.println("No hay pacientes para atender.");
+                return;
+            }
+
+            agenda.remove(atendido);
+        }
+
+        public boolean hayPacientes() {
+            return !urgencias.isEmpty() || !colaNormal.isEmpty();
+        }
+
+        public List&lt;Paciente&gt; getAgenda() {
+            return agenda;
+        }
+    }
+    </code></pre>
+
+    <hr />
+
+    <h4>3.3 Clase Secretaria</h4>
+
+    <p>
+      La secretaria registra a los pacientes a medida que llegan. Al hacerlo,
+      el hospital se encarga de actualizar tanto la cola correspondiente
+      como la agenda.
+    </p>
+
+    <pre><code class="language-java">
+    public class Secretaria {
+
+        private Hospital hospital;
+
+        public Secretaria(Hospital hospital) {
+            this.hospital = hospital;
+        }
+
+        public void registrarPacienteNormal(String nombre) {
+            hospital.registrarPacienteNormal(new Paciente(nombre));
+        }
+
+        public void registrarUrgencia(String nombre) {
+            hospital.registrarUrgencia(new Paciente(nombre));
+        }
+    }
+    </code></pre>
+
+    <hr />
+
+    <h4>3.4 Simulación</h4>
+
+    <pre><code class="language-java">
+    public class Main {
+
+        public static void main(String[] args) {
+
+            Hospital hospital = new Hospital();
+            Secretaria secretaria = new Secretaria(hospital);
+
+            secretaria.registrarPacienteNormal("Juan");
+            secretaria.registrarPacienteNormal("Ana");
+            secretaria.registrarUrgencia("Carlos");
+            secretaria.registrarUrgencia("María");
+            secretaria.registrarPacienteNormal("Luis");
+
+            System.out.println("\n--- Comienza la atención ---\n");
+
+            while (hospital.hayPacientes()) {
+                hospital.atenderPaciente();
+            }
+        }
+    }
+    </code></pre>
+
+    <hr />
+
+    <h4>3.5 Análisis del diseño</h4>
+
+    <p>
+      Este ejemplo muestra cómo una misma aplicación puede beneficiarse
+      de distintas implementaciones según el patrón de uso:
+    </p>
+
+    <ul>
+      <li>
+        <strong>LinkedList</strong> resulta ideal para modelar tanto pilas (LIFO)
+        como colas (FIFO), gracias a sus operaciones eficientes en ambos extremos.
+      </li>
+      <li>
+        <strong>ArrayList</strong> se utiliza en la agenda como una estructura
+        orientada a la lectura, donde el acceso por índice y el recorrido son frecuentes.
+      </li>
+    </ul>
+
+    <p>
+      La agenda no se carga manualmente: se actualiza automáticamente cada vez
+      que la secretaria registra un paciente y se limpia cuando el médico lo atiende.
+      De esta forma, actúa como una vista consistente del estado actual del hospital.
+    </p>
+
+    <p>
+      Este enfoque refuerza una idea clave: <strong>la elección de la estructura
+      de datos debe responder al comportamiento esperado y no solo a la interfaz
+      que implementa</strong>.
+    </p>
+      <h4>Espero que les haya gustado y sido útil.</h4>
+    </main>
+
+    <footer>
+      <p>© 2025 Federico Oscar Acosta</p>
+    </footer>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

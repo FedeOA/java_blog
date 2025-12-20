@@ -30,6 +30,11 @@ function cargarSeccion() {
       <p>Pruebas unitarias, de integración y frameworks como JUnit y Mockito.</p>
       <a href="/categories/test/testing.html">Ver artículos</a>
     </div>
+     <div class="post-card">
+      <h3>Estructuras de datos</h3>
+      <p>Arrays,Listas,colas,pilas,arboles,grafos.</p>
+      <a href="/categories/estructuras-de-datos/estructuras.html">Ver artículos</a>
+    </div>
   `;
   } else if (seccion === 'sobre') {
     contenido.innerHTML = `
