@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patrón Adapter</title>
+
+  <!-- Fuente -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Estilo base highlight.js -->
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="../../../estilos.css" />
+
+  <style>
+
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Patrón Adapter</h1>
+    <p>Patrón estructural que permite la colaboración entre interfaces incompatibles.</p>
+  </header>
+  
+  <nav>
+    <a href="../patrones-de-diseno.html">
+      ← Volver a Patrones de diseño
+    </a>
+  </nav>
+
+  <main class="post">
+
+    <!-- Introducción -->
+    <section>
+      <h2>¿Qué es el patrón Adapter?</h2>
+      <p>
+        El patrón <strong>Adapter</strong> actúa como un intermediario que traduce
+        una interfaz en otra esperada por el cliente, permitiendo que clases
+        incompatibles trabajen juntas sin modificar su código original.
+      </p>
+    </section>
+
+    <!-- Problema -->
+    <section>
+      <h2>Problema que resuelve</h2>
+      <p>
+        Ocurre cuando una clase existente no cumple con la interfaz requerida
+        por el sistema, pero no se puede (o no se debe) modificar.
+      </p>
+    </section>
+
+    <!-- Solución -->
+    <section>
+      <h2>Solución</h2>
+      <p>
+        Se crea una clase adaptadora que implementa la interfaz esperada y delega
+        las llamadas al objeto original, realizando las conversiones necesarias.
+      </p>
+    </section>
+
+    <!-- Estructura -->
+    <section>
+      <h2>Estructura</h2>
+      <ul>
+        <li><strong>Target</strong>: interfaz esperada por el cliente</li>
+        <li><strong>Adaptee</strong>: clase existente e incompatible</li>
+        <li><strong>Adapter</strong>: traduce la interfaz</li>
+        <li><strong>Client</strong>: usa la interfaz Target</li>
+      </ul>
+    </section>
+
+    <!-- Ejemplo en Java -->
+    <section>
+      <h2>Ejemplo en Java</h2>
+
+      <pre><code class="language-java">
+// Target
+interface EnchufeEuropeo {
+    void conectar();
+}
+
+// Adaptee
+class EnchufeAmericano {
+    public void plugIn() {
+        System.out.println("Conectado con enchufe americano");
+    }
+}
+
+// Adapter
+class AdaptadorAmericanoAEuropeo implements EnchufeEuropeo {
+    private EnchufeAmericano enchufe;
+
+    public AdaptadorAmericanoAEuropeo(EnchufeAmericano enchufe) {
+        this.enchufe = enchufe;
+    }
+
+    @Override
+    public void conectar() {
+        enchufe.plugIn();
+    }
+}
+
+// Client
+public class Main {
+    public static void main(String[] args) {
+        EnchufeEuropeo enchufe =
+            new AdaptadorAmericanoAEuropeo(new EnchufeAmericano());
+
+        enchufe.conectar();
+    }
+}
+      </code></pre>
+    </section>
+
+    <!-- Ejemplo completo -->
+    <section>
+      <h2>Ejemplo completo</h2>
+      <p>
+        Este ejemplo muestra una versión simplificada del patrón Adapter.
+        Para ver una implementación más realista aplicada a un proyecto Java,
+        podés consultar el siguiente repositorio:
+      </p>
+
+      <a
+        class="github-link"
+        href="https://github.com/FedeOA/AdapterPattern"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ver ejemplo completo en GitHub
+      </a>
+
+      <p>
+        En el repositorio se puede ver cómo:
+      </p>
+      <ul>
+        <li>Se adapta un servicio externo a una interfaz del dominio</li>
+        <li>Se desacopla el cliente del proveedor concreto</li>
+        <li>Se mantiene el dominio independiente de detalles REST</li>
+      </ul>
+    </section>
+
+    <!-- Cuándo usarlo -->
+    <section>
+      <h2>¿Cuándo usar el patrón Adapter?</h2>
+      <ul>
+        <li>Integración con librerías externas</li>
+        <li>Refactorización sin romper código existente</li>
+        <li>Compatibilidad entre APIs antiguas y nuevas</li>
+      </ul>
+    </section>
+
+    <!-- Pros y Contras -->
+    <section>
+      <h2>Ventajas y desventajas</h2>
+
+      <h3>✔ Ventajas</h3>
+      <ul>
+        <li>Respeta el principio Open/Closed</li>
+        <li>Reutilización de código existente</li>
+      </ul>
+
+      <h3>✖ Desventajas</h3>
+      <ul>
+        <li>Aumenta la cantidad de clases</li>
+        <li>Puede agregar complejidad innecesaria</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+<!-- Script highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      // Inicializar highlight.js
+      hljs.highlightAll();
+    </script>
+</body>
+</html>
