@@ -12,14 +12,14 @@ body {
   color: #c9d1d9;
 }
 
-/* Contenedores principales */
+/* Main containers */
 header, nav, main, footer {
   padding: 1rem 2rem;
   max-width: 900px;
   margin: auto;
 }
 
-/* Hacer que el main crezca y empuje el footer hacia abajo */
+
 main {
   flex: 1;
 }
@@ -29,7 +29,7 @@ header {
   border-bottom: 1px solid #30363d;
 }
 
-/* Navegación */
+/* Nav */
 nav a {
   color: #58a6ff;
   text-decoration: none;
@@ -40,7 +40,7 @@ nav a:hover {
   text-decoration: underline;
 }
 
-/* Tarjetas de posts */
+/* Cards */
 .post-card {
   background-color: #161b22;
   padding: 1rem;
@@ -60,16 +60,6 @@ footer {
   text-align: center;
 }
 
-/* Animación Próximamente */
-.coming-soon {
-  text-align: center;
-  margin-top: 3rem;
-  font-size: 1.5rem;
-  font-family: 'Fira Code', monospace;
-  animation: fadeIn 1.5s ease-in-out infinite alternate;
-  color: #ccc;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0.3;
@@ -80,19 +70,19 @@ footer {
     transform: translateY(-5px);
   }
 }
-/* animacion escribiendo*/
-.escribiendo {
+/* writing animation*/
+.writing {
   font-family: 'Fira Code', monospace;
   font-size: 1rem;
   color: #ccc;
   white-space: nowrap;
   overflow: hidden;
-  border-right: none; /* sin cursor */
+  border-right: none;
   width: 0;
   animation: typing 3s steps(60, end) forwards;
 }
 
-/* Retrasos para que aparezcan en orden */
+/* Animation delay */
 .delay-1 { animation-delay: 0s; }
 .delay-2 { animation-delay: 3.2s; }
 .delay-3 { animation-delay: 6.4s; }
@@ -108,13 +98,9 @@ footer {
   }
 }
 
-
-
-
-
-/* Estilos para resaltar etiquetas XML en verde brillante */
+/* styles to highlight XML tags in bright green */
 .hljs-tag {
-  color: #7CFC00 !important; /* verde brillante */
+  color: #7CFC00 !important; /* bright green */
   font-weight: bold;
 }
 
@@ -133,7 +119,7 @@ pre {
   overflow-x: auto;
 }
 
-.subtitulo-h4 {
+.subtittle-h4 {
   margin-left: 20px;
   margin-top: 10px;
 }
