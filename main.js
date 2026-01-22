@@ -35,6 +35,11 @@ function cargarSeccion() {
       <p>Arrays,Listas,colas,pilas,arboles,grafos.</p>
       <a href="/categories/data-structures/structures.html">Ver artículos</a>
     </div>
+    <div class="post-card">
+      <h3>Performance, Concurrencia, Multithreading y mucho mas...</h3>
+      <p>Conceptos y prácticas para escribir código más eficiente y escalable.</p>
+      <a href="/categories/performance/performance.html">Ver artículos</a>
+    </div>
   `;
   } else if (seccion === 'about') {
     contenido.innerHTML = `

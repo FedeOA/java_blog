@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Threads vs Platform Threads</title>
+
+    <!-- Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+
+      a {
+        color: #58a6ff;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .github-link {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        background-color: #238636;
+        color: #ffffff;
+        font-weight: bold;
+      }
+
+      .github-link:hover {
+        background-color: #2ea043;
+        text-decoration: none;
+      }
+  </style>
+
+    <!-- Base style highlight.js -->
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+
+    <link rel="stylesheet" href="../../styles.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Virtual Threads vs Platform Threads</h1>
+    </header>
+
+    <nav>
+      <a href="performance.html">← Volver</a>
+    </nav>
+
+    <main>
+      <section class="intro">
+        <h2>Introducción: Virtual Threads vs Platform Threads</h2>
+        <p>
+            En Java, los <strong>platform threads</strong> representan el modelo tradicional de ejecución:
+            cada hilo de aplicación se asocia directamente con un hilo del sistema operativo. 
+            Esto garantiza compatibilidad y estabilidad, pero implica un costo elevado en memoria 
+            y recursos, especialmente cuando se crean miles de hilos concurrentes.
+        </p>
+        <p>
+            Los <strong>virtual threads</strong>, introducidos con Project Loom, ofrecen un modelo 
+            mucho más liviano. Se ejecutan sobre un pequeño número de hilos de plataforma, 
+            pero permiten crear y gestionar millones de hilos virtuales con un consumo mínimo 
+            de recursos.
+        </p>
+    </section>
+    <section class="summary">
+
+        <h3>Stack más liviano:</h3>
+        <p>
+            Cada platform thread reserva un stack grande en memoria (por defecto varios MB).<br />
+            Los virtual threads usan stacks mucho más pequeños y dinámicos, que se expanden según necesidad.<br />
+            👉 Esto reduce el consumo de memoria por hilo.
+        </p>
+
+        <h3>Creación barata:</h3>
+        <p>
+            Crear un platform thread implica pedir recursos al sistema operativo.<br />
+            Crear un virtual thread es una operación ligera dentro de la JVM, casi tan barata como instanciar un objeto.<br />
+            👉 Podés tener millones de virtual threads sin saturar el sistema.
+        </p>
+
+        <h3>Multiplexación sobre carrier threads:</h3>
+        <p>
+            Los virtual threads no se ejecutan directamente en el SO, sino que se “montan” sobre un conjunto reducido de platform threads llamados carrier threads.<br />
+            La JVM pausa y reanuda virtual threads sin necesidad de cambios de contexto pesados del SO.<br />
+            👉 Menos overhead de scheduling.
+        </p>
+    </section>
+    <section class="practice">
+        <h2>Sección práctica: Benchmark con JMH</h2>
+        <p>
+            Para ilustrar las diferencias entre <strong>platform threads</strong> y 
+            <strong>virtual threads</strong>, se desarrolló un benchmark utilizando 
+            <strong>JMH (Java Microbenchmark Harness)</strong>. 
+            Este benchmark ejecuta tareas tanto <em>CPU-bound</em> como <em>I/O-bound</em> 
+            y permite observar cómo se comportan ambos modelos bajo distintas cargas.
+        </p>
+        <p>
+            El código completo del benchmark está disponible en el siguiente repositorio de GitHub:
+        </p>
+        <p>
+            <a
+                class="github-link"
+                href="https://github.com/FedeOA/virtual-threads-vs-platform-threads"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Ver ejemplo completo en GitHub
+            </a>
+        </p>
+        <p>
+            Allí encontrarás:
+            <ul>
+            <li>El código fuente del benchmark.</li>
+            <li>Instrucciones para compilar y ejecutar con Maven.</li>
+            <li>Ejemplos de resultados obtenidos.</li>
+            </ul>
+        </p>
+        </section>
+
+
+
+    </main>
+
+    <footer>
+      <p>© 2025 Federico Oscar Acosta</p>
+    </footer>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>
