@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singleton en Java: Controlando la instancia única</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Singleton en Java: Controlando la instancia única</h1>
+    <p>Cómo implementar el patrón Singleton para garantizar una sola instancia y controlar el acceso global a recursos compartidos.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Singleton?</h2>
+    <p>
+      El patrón <strong>Singleton</strong> es uno de los patrones de diseño creacionales más conocidos y utilizados en el desarrollo de software. Su objetivo principal es garantizar que una clase tenga <strong>una única instancia</strong> durante todo el ciclo de vida de la aplicación, proporcionando además un punto de acceso global a esa instancia.
+    </p>
+    <p>
+      Este patrón fue formalizado por la <em>Gang of Four</em> (GoF) en su libro clásico <em>Design Patterns: Elements of Reusable Object-Oriented Software</em> y sigue siendo una herramienta fundamental en el arsenal de cualquier desarrollador Java. La idea central es simple: en lugar de crear objetos libremente con <code>new</code>, la propia clase se encarga de controlar su instanciación y de ofrecer siempre el mismo objeto a quien lo solicite.
+    </p>
+  </section>
+
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>
+      Imagina que estás desarrollando una aplicación que necesita gestionar la conexión a una base de datos, un sistema de logging o un registro de configuración global. Si cada componente de tu aplicación creara su propia instancia de estas clases, enfrentarías varios problemas graves:
+    </p>
+    <ul>
+      <li><strong>Desperdicio de recursos:</strong> Abrir múltiples conexiones a una base de datos consume memoria y tiempo innecesariamente.</li>
+      <li><strong>Inconsistencia de estado:</strong> Si dos partes de la aplicación modifican objetos distintos creyendo que comparten el mismo estado, los datos pueden volverse inconsistentes.</li>
+      <li><strong>Dificultad de coordinación:</strong> Sin un punto de acceso único, coordinar el acceso concurrente a recursos compartidos se vuelve extremadamente complejo.</li>
+    </ul>
+    <p>
+      El patrón Singleton resuelve todos estos problemas al centralizar la creación y el acceso a un objeto, asegurando que solo exista uno en toda la aplicación.
+    </p>
+  </section>
+
+  <section>
+    <h2>Solución: implementando Singleton en Java</h2>
+    <p>
+      La implementación básica del patrón Singleton en Java requiere tres elementos fundamentales:
+    </p>
+    <ul>
+      <li>Un <strong>constructor privado</strong> que impide la instanciación directa desde fuera de la clase.</li>
+      <li>Un <strong>atributo estático privado</strong> que almacena la única instancia de la clase.</li>
+      <li>Un <strong>método estático público</strong>, generalmente llamado <code>getInstance()</code>, que devuelve la instancia existente o la crea si aún no existe.</li>
+    </ul>
+
+    <p>La implementación más simple, conocida como <em>Lazy Initialization</em>, crea la instancia solo cuando se necesita por primera vez:</p>
+
+    <pre><code class="language-java">public class ConfigurationManager {
+
+    // Instancia única de la clase
+    private static ConfigurationManager instance;
+
+    // Propiedades de configuración
+    private String databaseUrl;
+    private int maxConnections;
+
+    // Constructor privado para evitar instanciación externa
+    private ConfigurationManager() {
+        this.databaseUrl = "jdbc:mysql://localhost:3306/mydb";
+        this.maxConnections = 10;
+    }
+
+    // Método de acceso global a la instancia
+    public static ConfigurationManager getInstance() {
+        if (instance == null) {
+            instance = new ConfigurationManager();
+        }
+        return instance;
+    }
+
+    public String getDatabaseUrl() {
+        return databaseUrl;
+    }
+
+    public int getMaxConnections() {
+        return maxConnections;
+    }
+}
+    </code></pre>
+
+    <p>
+      Sin embargo, esta implementación tiene un problema importante: <strong>no es thread-safe</strong>. En un entorno multihilo, dos hilos podrían ejecutar simultáneamente la comprobación <code>if (instance == null)</code> y crear dos instancias distintas, rompiendo la garantía del patrón.
+    </p>
+  </section>
+
+  <section>
+    <h2>Singleton thread-safe: variantes avanzadas</h2>
+    <p>
+      En aplicaciones Java reales, el acceso concurrente es la norma, no la excepción. Por ello, es fundamental conocer las distintas estrategias para implementar un Singleton seguro en entornos multihilo.
+    </p>
+
+    <h3>Double-Checked Locking</h3>
+    <p>
+      Esta técnica utiliza <code>synchronized</code> solo en el momento crítico de la creación, evitando el coste de sincronización en cada llamada a <code>getInstance()</code>. La palabra clave <code>volatile</code> es esencial para garantizar la visibilidad correcta entre hilos:
+    </p>
+
+    <pre><code class="language-java">public class DatabaseConnection {
+
+    // volatile garantiza visibilidad entre hilos
+    private static volatile DatabaseConnection instance;
+
+    private String connectionUrl;
+
+    private DatabaseConnection() {
+        this.connectionUrl = "jdbc:postgresql://localhost:5432/app";
+        System.out.println("Conexión a base de datos inicializada.");
+    }
+
+    public static DatabaseConnection getInstance() {
+        if (instance == null) {                        // Primera comprobación (sin lock)
+            synchronized (DatabaseConnection.class) {
+                if (instance == null) {                // Segunda comprobación (con lock)
+                    instance = new DatabaseConnection();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public String getConnectionUrl() {
+        return connectionUrl;
+    }
+
+    public void executeQuery(String query) {
+        System.out.println("Ejecutando en [" + connectionUrl + "]: " + query);
+    }
+}
+    </code></pre>
+
+    <h3>Initialization-on-demand Holder (la mejor opción)</h3>
+    <p>
+      Esta variante aprovecha la garantía de la JVM de que la inicialización de clases es thread-safe por definición. Es la implementación recomendada en la mayoría de los casos porque es lazy, thread-safe y no requiere sincronización explícita:
+    </p>
+
+    <pre><code class="language-java">public class Logger {
+
+    // Constructor privado
+    private Logger() {
+        System.out.println("Logger inicializado.");
+    }
+
+    // Clase interna estática que contiene la instancia
+    private static class LoggerHolder {
+        private static final Logger INSTANCE = new Logger();
+    }
+
+    // Acceso a la instancia única
+    public static Logger getInstance() {
+        return LoggerHolder.INSTANCE;
+    }
+
+    public void log(String nivel, String mensaje) {
+        System.out.printf("[%s] %s: %s%n",
+            java.time.LocalDateTime.now(), nivel, mensaje);
+    }
+
+    public void info(String mensaje) {
+        log("INFO", mensaje);
+    }
+
+    public void error(String mensaje) {
+        log("ERROR", mensaje);
+    }
+}
+
+// Uso en la aplicación
+class Application {
+    public static void main(String[] args) {
+        Logger logger = Logger.getInstance();
+        logger.info("Aplicación iniciada.");
+
+        // Verificamos que siempre es la misma instancia
+        Logger otroLogger = Logger.getInstance();
+        System.out.println("¿Misma instancia? " + (logger == otroLogger)); // true
+
+        otroLogger.error("Esto es un error de prueba.");
+    }
+}
+    </code></pre>
+
+    <p>
+      En este ejemplo, la clase interna <code>LoggerHolder</code> solo se carga cuando se accede por primera vez a <code>getInstance()</code>, garantizando tanto la inicialización perezosa como la seguridad en entornos concurrentes sin coste adicional.
+    </p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li><strong>Constructor privado:</strong> Impide que otras clases creen instancias usando <code>new</code>, delegando el control completamente a la propia clase.</li>
+      <li><strong>Atributo estático:</strong> Almacena la referencia a la única instancia en el nivel de clase, no de objeto, para que persista durante toda la ejecución.</li>
+      <li><strong>Método <code>getInstance()</code>:</strong> Punto de acceso global que garantiza la devolución de la misma instancia en cada invocación.</li>
+      <li><strong>Lazy Initialization:</strong> Estrategia de creación diferida donde la instancia solo se construye cuando se necesita por primera vez, ahorrando recursos si nunca se usa.</li>
+      <li><strong>Eager Initialization:</strong> La instancia se crea al cargar la clase, independientemente de si se va a usar. Más simple pero consume recursos desde el inicio.</li>
+      <li><strong><code>volatile</code>:</strong> Modificador que asegura que los cambios en la variable sean visibles inmediatamente para todos los hilos, crucial en la implementación Double-Checked Locking.</li>
+      <li><strong>Holder Pattern:</strong> Técnica que delega la inicialización a una clase interna estática, aprovechando las garantías de thread-safety de la JVM sin sincronización manual.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/singleton"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Cuando necesitas un <strong>gestor de configuración</strong> que cargue propiedades del sistema una sola vez y las comparta en toda la aplicación.</li>
+      <li>Para implementar un <strong>sistema de logging centralizado</strong> que todos los módulos de la aplicación puedan utilizar sin crear instancias propias.</li>
+      <li>En la gestión de <strong>pools de conexiones</strong> a bases de datos o servicios externos, donde crear múltiples pools sería costoso e innecesario.</li>
+      <li>Cuando implementas un <strong>registro de servicios</strong> (Service Registry) o un contenedor de dependencias simple.</li>
+      <li>Para gestionar el acceso a <strong>recursos hardware</strong> que solo pueden ser controlados por un único punto, como impresoras, puertos seriales o dispositivos de lectura.</li>
+      <li>En la implementación de <strong>cachés en memoria</strong> compartidas entre distintos componentes de la aplicación.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li><strong>Control absoluto sobre la instanciación:</strong> Garantiza que solo exista un objeto en toda la aplicación, eliminando inconsistencias de estado.</li>
+      <li><strong>Ahorro de recursos:</strong> Evita la creación repetida de objetos costosos, como conexiones a bases de datos o lectores de configuración.</li>
+      <li><strong>Acceso global sencillo:</strong> Cualquier parte de la aplicación puede acceder al objeto compartido sin necesidad de pasarlo como parámetro.</li>
+      <li><strong>Inicialización controlada:</strong> Con Lazy Initialization, el objeto solo se crea si realmente se necesita, optimizando el arranque de la aplicación.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li><strong>Dificultad para testear:</strong> El estado global que introduce el Singleton complica las pruebas unitarias, ya que el estado de una prueba puede afectar a las demás si no se resetea correctamente.</li>
+      <li><strong>Acoplamiento elevado:</strong> Las clases que dependen directamente de un Singleton están fuertemente acopladas a él, reduciendo la flexibilidad y dificultando la sustitución por implementaciones alternativas.</li>
+      <li><strong>Violación del Principio de Responsabilidad Única:</strong> La clase asume la responsabilidad de gestionar su propia creación además de su lógica de negocio.</li>
+      <li><strong>Problemas en entornos distribuidos:</strong> En arquitecturas de microservicios o aplicaciones con múltiples JVMs, cada instancia tiene su propio Singleton, por lo que el patrón no garantiza unicidad a nivel de sistema distribuido.</li>
+      <li><strong>Considerado un antipatrón en algunos contextos:</strong> Un uso excesivo o inadecuado puede llevar a un diseño rígido y difícil de mantener. Se recomienda evaluar si la inyección de dependencias (DI) no es una solución más apropiada.</li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

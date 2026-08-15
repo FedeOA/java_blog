@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patrón Facade</title>
+
+  <!-- Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Base style highlight.js -->
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+
+
+  <!-- own styles -->
+  <link rel="stylesheet" href="../../../styles.css" />
+
+  <style>
+
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Patrón Facade</h1>
+    <p>Patrón estructural que simplifica la interfaz a una subestructura de subsistemas.</p>
+  </header>
+  
+  <nav>
+    <a href="../design-patterns.html">
+      ← Volver a Patrones de diseño
+    </a>
+  </nav>
+
+  <main class="post">
+
+    <!-- Introduction -->
+    <section>
+      <h2>¿Qué es el patrón Facade?</h2>
+      <p>
+        El patrón <strong>Facade</strong> proporciona una interfaz simplificada a un conjunto de interfaces en un subsistema complejo.
+        Permite a los clientes utilizar el sistema sin acceder directamente a las clases individuales del subsistema,
+        facilitando su uso y reduciendo la dependencia entre ellos.
+      </p>
+    </section>
+
+    <!-- Problem -->
+    <section>
+      <h2>Problema que resuelve</h2>
+      <p>
+        Ocurre cuando un cliente tiene una interacción compleja con varios componentes de un subsistema.
+        La creación de instancias y coordinación entre estos componentes puede volverse difícil y propensa a errores.
+      </p>
+    </section>
+
+    <!-- Solution -->
+    <section>
+      <h2>Solución</h2>
+      <p>
+        Se crea una clase Facade que proporciona un método único de interfaz simplificada al cliente,
+        ocultando la complejidad interna del subsistema. El Facade se encarga de coordinar las llamadas a los componentes
+        necesarios para cumplir con la solicitud del cliente.
+      </p>
+    </section>
+
+    <!-- Structure -->
+    <section>
+      <h2>Estructura</h2>
+      <ul>
+        <li><strong>Facade</strong>: proporciona una interfaz simplificada al subsistema.</li>
+        <li><strong>Subsistema</strong>: conjunto de clases complejas con muchas funcionalidades.</li>
+        <li><strong>Client</strong>: interactúa únicamente con el Facade.</li>
+      </ul>
+    </section>
+
+    <!-- Example in Java -->
+    <section>
+      <h2>Ejemplo en Java</h2>
+
+      <pre><code class="language-java">
+// Subsistema
+interface CuentaBancaria {
+    void abrirCuenta();
+}
+
+class Ahorro implements CuentaBancaria {
+    @Override
+    public void abrirCuenta() {
+        System.out.println("Cuenta de ahorro abierta.");
+    }
+}
+
+class Corriente implements CuentaBancaria {
+    @Override
+    public void abrirCuenta() {
+        System.out.println("Cuenta corriente abierta.");
+    }
+}
+
+// Facade
+class FachadaBanco {
+    private Ahorro ahorro;
+    private Corriente corriente;
+
+    public FachadaBanco() {
+        this.ahorro = new Ahorro();
+        this.corriente = new Corriente();
+    }
+
+    public void abrirCuentaAhorro() {
+        ahorro.abrirCuenta();
+    }
+
+    public void abrirCuentaCorriente() {
+        corriente.abrirCuenta();
+    }
+}
+
+// Client
+public class Main {
+    public static void main(String[] args) {
+        FachadaBanco banco = new FachadaBanco();
+
+        banco.abrirCuentaAhorro();
+        banco.abrirCuentaCorriente();
+    }
+}
+      </code></pre>
+    </section>
+
+    <!-- Ejemplo completo -->
+    <section>
+      <h2>Ejemplo completo</h2>
+      <p>
+        Este ejemplo muestra una versión simplificada del patrón Facade.
+        Para ver una implementación más realista aplicada a un proyecto Java,
+        podés consultar el siguiente repositorio:
+      </p>
+
+      <a
+        class="github-link"
+        href="https://github.com/FedeOA/BankFacadePattern"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ver ejemplo completo en GitHub
+      </a>
+
+      <p>
+        En el repositorio se puede ver cómo:
+      </p>
+      <ul>
+        <li>Se simplifica la interfaz de un banco con múltiples servicios.</li>
+        <li>El cliente interactúa con el sistema a través de una única clase.</li>
+        <li>Las dependencias entre las clases del subsistema son ocultadas al cliente.</li>
+      </ul>
+    </section>
+
+    <!-- When can you use it -->
+    <section>
+      <h2>¿Cuándo usar el patrón Facade?</h2>
+      <ul>
+        <li>Cuando se necesita una interfaz simplificada a un subsistema complejo.</li>
+        <li>Para desacoplar un cliente de los detalles internos de un sistema.</li>
+        <li>Para proporcionar acceso limitado a las funcionalidades de un subsistema.</li>
+      </ul>
+    </section>
+
+    <!-- advantages and disadvanages -->
+    <section>
+      <h2>Ventajas y desventajas</h2>
+
+      <h3>✔ Ventajas</h3>
+      <ul>
+        <li>Provee una interfaz simplificada.</li>
+        <li>Desacopla el cliente del subsistema.</li>
+      </ul>
+
+      <h3>✖ Desventajas</h3>
+      <ul>
+        <li>Puede ocultar detalles importantes del sistema.</li>
+        <li>El Facade puede volverse una clase monolítica si no se implementa correctamente.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+<!-- Script highlight.js -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    // Init highlight.js
+    hljs.highlightAll();
+  </script>
+  <script type="text/javascript"> function googleTranslateElementInit() { new google.translate.TranslateElement( {pageLanguage: 'es', includedLanguages: 'en'}, 'google_translate_element' ); } </script> <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

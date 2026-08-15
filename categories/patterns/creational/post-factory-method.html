@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factory Method en Java: Construcción flexible de objetos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Factory Method en Java: Construcción flexible de objetos</h1>
+    <p>Cómo encapsular la creación de objetos con Factory Method para desacoplar dependencias y mejorar la extensibilidad.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <!-- Introduction -->
+  <section>
+    <h2>¿Qué es el Factory Method?</h2>
+    <p>El Factory Method es un patrón de diseño creacional que proporciona una interfaz para crear objetos sin especificar exactamente qué clases concretas se instanciarán. En lugar de utilizar el operador <code>new</code> directamente en el código cliente, delegamos la creación de objetos a métodos especializados que actúan como "fábricas". Este enfoque encapsula la lógica de instanciación y permite que las subclases decidan qué tipo de objeto crear, promoviendo así un código más flexible, mantenible y desacoplado.</p>
+    <p>El Factory Method es especialmente útil cuando una clase no puede anticipar el tipo de objetos que necesita crear, o cuando deseas permitir que las subclases especifiquen los objetos que crearán. Este patrón es fundamental en arquitecturas orientadas a objetos modernas y se encuentra en innumerables frameworks y librerías Java populares.</p>
+  </section>
+
+  <!-- Problem -->
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>Sin el Factory Method, el código cliente debe conocer todas las clases concretas que podría necesitar instanciar. Esto genera varios problemas significativos:</p>
+    <p><strong>Acoplamiento fuerte:</strong> El código cliente está directamente acoplado a las implementaciones concretas. Si necesitas agregar una nueva clase o cambiar la lógica de instanciación, debes modificar el código cliente en múltiples lugares.</p>
+    <p><strong>Dificultad para mantener:</strong> Cuando la lógica de creación es compleja (requiere validaciones, configuraciones especiales o decisiones basadas en parámetros), esta lógica se dispersa por toda la aplicación, haciendo el código difícil de mantener.</p>
+    <p><strong>Falta de extensibilidad:</strong> Agregar nuevos tipos de objetos requiere cambios en el código existente, violando el principio Open/Closed (abierto para extensión, cerrado para modificación).</p>
+    <p><strong>Pruebas unitarias complicadas:</strong> Es difícil mockear o reemplazar las dependencias cuando están fuertemente acopladas a través de instanciación directa.</p>
+    <p>Consideremos un ejemplo: una aplicación que trabaja con diferentes tipos de conexiones a bases de datos (MySQL, PostgreSQL, MongoDB). Sin Factory Method, cada parte del código que necesita una conexión debe saber cómo instanciar la clase correcta, resultando en código repetitivo y frágil.</p>
+  </section>
+
+  <!-- Solution -->
+  <section>
+    <h2>Solución</h2>
+    <p>El Factory Method resuelve estos problemas al centralizar la creación de objetos en métodos especializados. La solución se basa en dos principios clave:</p>
+    <p><strong>Abstracción de la creación:</strong> En lugar de instanciar directamente, el código cliente llama a un método factory que retorna un objeto del tipo esperado. El cliente no necesita conocer la clase concreta específica.</p>
+    <p><strong>Polimorfismo:</strong> Las subclases pueden sobrescribir el método factory para retornar diferentes tipos de objetos, permitiendo que la decisión sobre qué crear se tome en tiempo de ejecución.</p>
+    <p>Esta aproximación desacopla el código cliente de las implementaciones concretas, permitiendo que nuevas clases se agreguen sin modificar el código existente. La lógica de creación se centraliza en un lugar, facilitando el mantenimiento y las pruebas.</p>
+  </section>
+
+  <!-- Structure -->
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li><strong>Product (Producto):</strong> La interfaz o clase abstracta que define el contrato para los objetos que la fábrica creará. Todos los productos concretos implementan esta interfaz.</li>
+      <li><strong>ConcreteProduct (Producto Concreto):</strong> Las implementaciones específicas del producto. Cada una representa un tipo diferente de objeto que la fábrica puede crear.</li>
+      <li><strong>Creator (Creador):</strong> La clase abstracta o interfaz que declara el método factory. Contiene la lógica que depende del producto abstracto, no de las clases concretas.</li>
+      <li><strong>ConcreteCreator (Creador Concreto):</strong> Las subclases que implementan el método factory para crear productos concretos específicos. Cada creador concreto sabe cómo instanciar su correspondiente producto concreto.</li>
+      <li><strong>Inversión de dependencias:</strong> El código cliente depende de abstracciones (interfaces/clases abstractas), no de implementaciones concretas, siguiendo el principio de inversión de dependencias.</li>
+    </ul>
+  </section>
+
+  <!-- Example 1 -->
+  <section>
+    <h2>Ejemplo en Java: Sistema de Transporte</h2>
+    <p>Veamos un ejemplo práctico donde una empresa de logística necesita trabajar con diferentes tipos de transporte (camiones, barcos, aviones). Cada tipo tiene su propia implementación, pero el código cliente debe trabajar con cualquiera de ellos de manera uniforme.</p>
+    <pre><code class="java">
+// Interfaz del Producto
+public interface Transporte {
+    void entregar(String destino);
+    double calcularCosto(double distancia);
+}
+
+// Productos Concretos
+public class Camion implements Transporte {
+    @Override
+    public void entregar(String destino) {
+        System.out.println("Entregando por carretera a: " + destino);
+    }
+    
+    @Override
+    public double calcularCosto(double distancia) {
+        return distancia * 0.5; // $0.50 por km
+    }
+}
+
+public class Barco implements Transporte {
+    @Override
+    public void entregar(String destino) {
+        System.out.println("Entregando por mar a: " + destino);
+    }
+    
+    @Override
+    public double calcularCosto(double distancia) {
+        return distancia * 0.2; // $0.20 por km
+    }
+}
+
+public class Avion implements Transporte {
+    @Override
+    public void entregar(String destino) {
+        System.out.println("Entregando por aire a: " + destino);
+    }
+    
+    @Override
+    public double calcularCosto(double distancia) {
+        return distancia * 1.5; // $1.50 por km
+    }
+}
+
+// Clase Creadora Abstracta
+public abstract class Logistica {
+    public abstract Transporte crearTransporte();
+    
+    public void planificarEntrega(String destino, double distancia) {
+        Transporte transporte = crearTransporte();
+        transporte.entregar(destino);
+        double costo = transporte.calcularCosto(distancia);
+        System.out.println("Costo de entrega: $" + costo);
+    }
+}
+
+// Creadores Concretos
+public class LogisticaTerrestre extends Logistica {
+    @Override
+    public Transporte crearTransporte() {
+        return new Camion();
+    }
+}
+
+public class LogisticaMaritima extends Logistica {
+    @Override
+    public Transporte crearTransporte() {
+        return new Barco();
+    }
+}
+
+public class LogisticaAerea extends Logistica {
+    @Override
+    public Transporte crearTransporte() {
+        return new Avion();
+    }
+}
+
+// Uso del patrón
+public class Main {
+    public static void main(String[] args) {
+        Logistica logistica = new LogisticaTerrestre();
+        logistica.planificarEntrega("Madrid", 500);
+        
+        logistica = new LogisticaMaritima();
+        logistica.planificarEntrega("Barcelona", 1000);
+        
+        logistica = new LogisticaAerea();
+        logistica.planificarEntrega("Sevilla", 300);
+    }
+}
+    </code></pre>
+  </section>
+
+  <!-- Example 2 -->
+  <section>
+    <h2>Ejemplo avanzado: Factory Method con parámetros</h2>
+    <p>En muchos casos, necesitamos que el factory method tome decisiones basadas en parámetros. Aquí mostramos un ejemplo de un sistema de notificaciones que crea diferentes tipos de notificadores según el tipo especificado:</p>
+    <pre><code class="java">
+// Interfaz del Producto
+public interface Notificador {
+    void enviar(String mensaje, String destinatario);
+}
+
+// Productos Concretos
+public class NotificadorEmail implements Notificador {
+    @Override
+    public void enviar(String mensaje, String destinatario) {
+        System.out.println("Email enviado a " + destinatario + ": " + mensaje);
+    }
+}
+
+public class NotificadorSMS implements Notificador {
+    @Override
+    public void enviar(String mensaje, String destinatario) {
+        System.out.println("SMS enviado a " + destinatario + ": " + mensaje);
+    }
+}
+
+public class NotificadorPushNotification implements Notificador {
+    @Override
+    public void enviar(String mensaje, String destinatario) {
+        System.out.println("Push notification enviada a " + destinatario + ": " + mensaje);
+    }
+}
+
+// Factory Method con parámetros
+public class FabricaNotificadores {
+    public static Notificador crearNotificador(String tipo) {
+        switch(tipo.toLowerCase()) {
+            case "email":
+                return new NotificadorEmail();
+            case "sms":
+                return new NotificadorSMS();
+            case "push":
+                return new NotificadorPushNotification();
+            default:
+                throw new IllegalArgumentException("Tipo de notificador no soportado: " + tipo);
+        }
+    }
+}
+
+// Uso
+public class SistemaNotificaciones {
+    public static void main(String[] args) {
+        Notificador notificador = FabricaNotificadores.crearNotificador("email");
+        notificador.enviar("Bienvenido", "usuario@example.com");
+        
+        notificador = FabricaNotificadores.crearNotificador("sms");
+        notificador.enviar("Tu código es 1234", "+34612345678");
+    }
+}
+    </code></pre>
+  </section>
+
+  <!-- Example 3 -->
+  <section>
+    <h2>Ejemplo con Enums y Factory Method</h2>
+    <p>Una forma moderna y type-safe de implementar Factory Method es utilizando enums. Esto proporciona una solución elegante y segura:</p>
+    <pre><code class="java">
+public interface BaseDatos {
+    void conectar();
+    void ejecutarQuery(String sql);
+}
+
+public class MySQL implements BaseDatos {
+    @Override
+    public void conectar() {
+        System.out.println("Conectando a MySQL...");
+    }
+    
+    @Override
+    public void ejecutarQuery(String sql) {
+        System.out.println("Ejecutando en MySQL: " + sql);
+    }
+}
+
+public class PostgreSQL implements BaseDatos {
+    @Override
+    public void conectar() {
+        System.out.println("Conectando a PostgreSQL...");
+    }
+    
+    @Override
+    public void ejecutarQuery(String sql) {
+        System.out.println("Ejecutando en PostgreSQL: " + sql);
+    }
+}
+
+public enum TipoBaseDatos {
+    MYSQL(MySQL::new),
+    POSTGRESQL(PostgreSQL::new);
+    
+    private final java.util.function.Supplier<BaseDatos> constructor;
+    
+    TipoBaseDatos(java.util.function.Supplier<BaseDatos> constructor) {
+        this.constructor = constructor;
+    }
+    
+    public BaseDatos crear() {
+        return constructor.get();
+    }
+}
+
+// Uso
+public class ConexionBD {
+    public static void main(String[] args) {
+        BaseDatos bd = TipoBaseDatos.MYSQL.crear();
+        bd.conectar();
+        bd.ejecutarQuery("SELECT * FROM usuarios");
+        
+        bd = TipoBaseDatos.POSTGRESQL.crear();
+        bd.conectar();
+        bd.ejecutarQuery("SELECT * FROM usuarios");
+    }
+}
+    </code></pre>
+  </section>
+
+  <!-- Complete example -->
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/factory-method"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <!-- When to use it -->
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li><strong>Múltiples implementaciones:</strong> Cuando una clase puede tener varias implementaciones y necesitas elegir cuál usar en tiempo de ejecución.</li>
+      <li><strong>Desconocimiento de tipos concretos:</strong> Cuando el código cliente no debe conocer las clases concretas específicas que necesita crear.</li>
+      <li><strong>Lógica de creación compleja:</strong> Cuando la instanciación requiere validaciones, configuraciones especiales o decisiones complejas.</li>
+      <li><strong>Extensibilidad futura:</strong> Cuando anticipas que nuevos tipos de productos se agregarán en el futuro sin modificar el código existente.</li>
+      <li><strong>Inyección de dependencias:</strong> Cuando trabajas con frameworks que requieren control sobre la creación de objetos.</li>
+      <li><strong>Pruebas unitarias:</strong> Cuando necesitas mockear o reemplazar fácilmente las dependencias en tus tests.</li>
+      <li><strong>Frameworks y librerías:</strong> Cuando desarrollas frameworks que deben permitir a los usuarios extender funcionalidad creando nuevas implementaciones.</li>
+    </ul>
+  </section>
+
+  <!-- Advantages and disadvantages -->
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li><strong>Desacoplamiento:</strong> El código cliente está desacoplado de las clases concretas, dependiendo solo de abstracciones.</li>
+      <li><strong>Flexibilidad:</strong> Puedes cambiar o agregar nuevas implementaciones sin modificar el código cliente.</li>
+      <li><strong>Centralización:</strong> La lógica de creación se centraliza en un lugar, facilitando el mantenimiento y los cambios.</li>
+      <li><strong>Principio Open/Closed:</strong> El código está abierto para extensión (nuevas clases) pero cerrado para modificación.</li>
+      <li><strong>Testabilidad:</strong> Facilita las pruebas unitarias al permitir inyectar implementaciones mock o stub.</li>
+      <li><strong>Responsabilidad única:</strong> Cada clase tiene una responsabilidad clara: crear o usar objetos, no ambas.</li>
+      <li><strong>Polimorfismo en tiempo de ejecución:</strong> Permite tomar decisiones sobre qué tipo de objeto crear en tiempo de ejecución.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li><strong>Complejidad adicional:</strong> Introduce clases y abstracciones adicionales que pueden ser excesivas para casos simples.</li>
+      <li><strong>Curva de aprendizaje:</strong> Desarrolladores menos experimentados pueden encontrar el patrón confuso inicialmente.</li>
+      <li
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
