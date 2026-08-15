@@ -1,0 +1,204 @@
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const axios = require('axios');
+const { execSync } = require('child_process');
+
+async function createPullRequests(topic, postFile, javaExample, linkedinPost, blogConfig, githubConfig) {
+	console.log('\n📋 Paso 4: Creando Pull Requests...\n');
+
+	const timestamp = new Date().toISOString().split('T')[0];
+	const postBranchName = `feature/post-${topic.slug}-${timestamp}`;
+
+	try {
+		const postPullRequest = await createPostBranch(topic, postBranchName, blogConfig, githubConfig);
+		const javaRepository = await createJavaRepository(topic, javaExample, blogConfig, githubConfig);
+
+		const linkedinMetadata = {
+			topic: topic.title,
+			slug: topic.slug,
+			postLink: `${blogConfig.blogUrl}/categories/${topic.category}/post-${topic.slug}.html`,
+			codeLink: javaRepository.htmlUrl,
+			linkedinPost,
+			createdAt: new Date().toISOString(),
+			prPost: postBranchName,
+			postPullRequest: postPullRequest.htmlUrl,
+			repository: javaRepository.name
+		};
+
+		fs.writeFileSync(
+			'.github/last-post-linkedin-metadata.json',
+			JSON.stringify(linkedinMetadata, null, 2)
+		);
+		execSync('git add .github/last-post-linkedin-metadata.json', { stdio: 'pipe' });
+		execSync('git commit -m "📱 metadata: LinkedIn post info (generated automatically)"', { stdio: 'pipe' });
+		pushBranch(postBranchName, githubConfig);
+
+		checkoutMain();
+		console.log('\n✅ LinkedIn metadata saved for later publication');
+		console.log('   File: .github/last-post-linkedin-metadata.json');
+	} catch (error) {
+		console.error('❌ Error creando PRs:');
+		console.error(error.message);
+		throw error;
+	}
+}
+
+async function createPostBranch(topic, branchName, blogConfig, githubConfig) {
+	console.log('📝 Creando PR para el post...');
+	checkoutMain();
+	checkoutNewBranch(branchName);
+	execSync('git add categories/', { stdio: 'pipe' });
+	execSync(`git commit -m "✍️  post: ${topic.title}\n\nAutor: ${blogConfig.author}\nCategoría: ${topic.category}\n\nPor favor revisar el contenido, redacción y ejemplos de código."`, { stdio: 'pipe' });
+	pushBranch(branchName, githubConfig);
+	const pullRequest = await createPullRequest(
+		`post: ${topic.title}`,
+		branchName,
+		`Por favor revisar el contenido, redacción y ejemplos de código.\n\nAutor: ${blogConfig.author}\nCategoría: ${topic.category}`,
+		githubConfig
+	);
+	console.log(`✅ Rama creada: ${branchName}`);
+	console.log(`✅ Pull Request creado: ${pullRequest.htmlUrl}`);
+	return pullRequest;
+}
+
+async function createJavaRepository(topic, javaExample, blogConfig, githubConfig) {
+	const repositoryName = getJavaExampleRepositoryName(topic);
+	console.log(`☕ Creando repositorio Java: ${repositoryName}`);
+
+	const repository = await createGithubRepository(repositoryName, githubConfig);
+	const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'java-example-'));
+
+	try {
+		writeJavaExampleFiles(temporaryDirectory, javaExample);
+		initializeAndPushRepository(temporaryDirectory, repository.cloneUrl, repositoryName, githubConfig);
+		console.log(`✅ Repositorio Java publicado: ${repository.htmlUrl}`);
+		return repository;
+	} finally {
+		fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+	}
+}
+
+function getJavaExampleRepositoryName(topic) {
+	if (topic.githubUrl) {
+		const repositoryUrl = new URL(topic.githubUrl);
+		const repositoryName = repositoryUrl.pathname.split('/').filter(Boolean).pop();
+
+		if (repositoryName) {
+			return repositoryName.replace(/\.git$/, '');
+		}
+	}
+
+	return topic.slug;
+}
+
+async function createGithubRepository(repositoryName, githubConfig) {
+	const headers = getGithubHeaders(githubConfig);
+	const apiUrl = 'https://api.github.com/user/repos';
+
+	try {
+		const response = await axios.post(apiUrl, {
+			name: repositoryName,
+			description: `Java example for ${repositoryName}`,
+			private: false,
+			auto_init: false
+		}, { headers });
+
+		return {
+			name: response.data.name,
+			htmlUrl: response.data.html_url,
+			cloneUrl: response.data.clone_url
+		};
+	} catch (error) {
+		if (error.response?.status !== 422) {
+			throw new Error(`No se pudo crear el repositorio ${repositoryName}: ${error.message}`);
+		}
+
+		const response = await axios.get(
+			`https://api.github.com/repos/${githubConfig.username}/${repositoryName}`,
+			{ headers }
+		);
+
+		return {
+			name: response.data.name,
+			htmlUrl: response.data.html_url,
+			cloneUrl: response.data.clone_url
+		};
+	}
+}
+
+function getGithubHeaders(githubConfig) {
+	return {
+		Accept: 'application/vnd.github+json',
+		Authorization: `Bearer ${githubConfig.token}`,
+		'X-GitHub-Api-Version': '2022-11-28'
+	};
+}
+
+async function createPullRequest(title, headBranch, body, githubConfig) {
+	const repositoryPath = githubConfig.repository;
+	const response = await axios.post(
+		`https://api.github.com/repos/${repositoryPath}/pulls`,
+		{
+			title,
+			head: headBranch,
+			base: 'main',
+			body
+		},
+		{ headers: getGithubHeaders(githubConfig) }
+	);
+
+	return {
+		number: response.data.number,
+		htmlUrl: response.data.html_url
+	};
+}
+
+function writeJavaExampleFiles(directory, javaExample) {
+	for (const [relativeFilePath, content] of Object.entries(javaExample.files)) {
+		const filePath = path.join(directory, relativeFilePath);
+		fs.mkdirSync(path.dirname(filePath), { recursive: true });
+		fs.writeFileSync(filePath, content, 'utf8');
+	}
+
+	fs.writeFileSync(path.join(directory, '.gitignore'), `out/
+*.class
+.idea/
+.vscode/
+*.log
+.DS_Store`);
+}
+
+function initializeAndPushRepository(directory, cloneUrl, repositoryName, githubConfig) {
+	execSync('git init', { cwd: directory, stdio: 'pipe' });
+	execSync('git checkout -b main', { cwd: directory, stdio: 'pipe' });
+	execSync(`git config user.name "${githubConfig.username}"`, { cwd: directory, stdio: 'pipe' });
+	execSync(`git config user.email "${githubConfig.email}"`, { cwd: directory, stdio: 'pipe' });
+	execSync('git add .', { cwd: directory, stdio: 'pipe' });
+	execSync(`git commit -m "☕ Initial Java example: ${repositoryName}"`, { cwd: directory, stdio: 'pipe' });
+
+	const authenticatedCloneUrl = cloneUrl.replace(
+		'https://',
+		`https://x-access-token:${githubConfig.token}@`
+	);
+	execSync(`git remote add origin ${authenticatedCloneUrl}`, { cwd: directory, stdio: 'pipe' });
+	execSync('git push -u origin main', { cwd: directory, stdio: 'pipe' });
+}
+
+function checkoutNewBranch(branchName) {
+	execSync(`git checkout -b ${branchName}`, { stdio: 'pipe' });
+}
+
+function checkoutMain() {
+	execSync('git checkout main', { stdio: 'pipe' });
+}
+
+function pushBranch(branchName, githubConfig) {
+	const remoteUrl = `https://x-access-token:${githubConfig.token}@github.com/${githubConfig.repository}.git`;
+	execSync(`git push ${remoteUrl} ${branchName}`, { stdio: 'pipe' });
+}
+
+module.exports = {
+	createPullRequests,
+	getJavaExampleRepositoryName
+};

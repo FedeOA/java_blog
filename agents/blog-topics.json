@@ -1,0 +1,258 @@
+[
+  {
+    "title": "Singleton en Java: Controlando la instancia única",
+    "slug": "singleton",
+    "category": "patterns",
+    "subcategory": "creational",
+    "description": "Cómo implementar el patrón Singleton para garantizar una sola instancia y controlar el acceso global a recursos compartidos.",
+    "keyTopics": [
+      "Singleton",
+      "Creational Pattern",
+      "Java",
+      "Thread safety"
+    ],
+    "priority": 1,
+    "status": "published"
+  },
+  {
+    "title": "Factory Method en Java: Construcción flexible de objetos",
+    "slug": "factory-method",
+    "category": "patterns",
+    "subcategory": "creational",
+    "description": "Cómo encapsular la creación de objetos con Factory Method para desacoplar dependencias y mejorar la extensibilidad.",
+    "keyTopics": [
+      "Factory Method",
+      "Creational Pattern",
+      "Polymorphism",
+      "Dependency inversion"
+    ],
+    "priority": 2,
+    "status": "published",
+    "publishedAt": "2026-08-15T22:03:26.339Z"
+  },
+  {
+    "title": "Abstract Factory en Java: familias de objetos coordinadas",
+    "slug": "abstract-factory",
+    "category": "patterns",
+    "subcategory": "creational",
+    "description": "Cómo crear familias de objetos relacionadas sin acoplar el código cliente a clases concretas específicas.",
+    "keyTopics": [
+      "Abstract Factory",
+      "Creational Pattern",
+      "Object families",
+      "Extensibility"
+    ],
+    "priority": 3,
+    "status": "pending"
+  },
+  {
+    "title": "Builder en Java: Construcción clara y legible de objetos complejos",
+    "slug": "builder",
+    "category": "patterns",
+    "subcategory": "creational",
+    "description": "Cómo usar Builder para crear objetos complejos con una API fluida y sin constructor inflado.",
+    "keyTopics": [
+      "Builder",
+      "Creational Pattern",
+      "Immutability",
+      "Readable APIs"
+    ],
+    "priority": 4,
+    "status": "pending"
+  },
+  {
+    "title": "Prototype en Java: Clonación de objetos con reutilización",
+    "slug": "prototype",
+    "category": "patterns",
+    "subcategory": "creational",
+    "description": "Cómo reutilizar y clonar objetos existentes para evitar trabajo repetitivo en la construcción de instancias.",
+    "keyTopics": [
+      "Prototype",
+      "Creational Pattern",
+      "Cloning",
+      "Performance"
+    ],
+    "priority": 5,
+    "status": "pending"
+  },
+  {
+    "title": "Bridge en Java: Separando abstracción de implementación",
+    "slug": "bridge",
+    "category": "patterns",
+    "subcategory": "structural",
+    "description": "Cómo separar la interfaz del comportamiento de la implementación para reducir el acoplamiento y facilitar extensiones.",
+    "keyTopics": [
+      "Bridge",
+      "Structural Pattern",
+      "Abstraction",
+      "Implementation"
+    ],
+    "priority": 6,
+    "status": "pending"
+  },
+  {
+    "title": "Composite en Java: Tratando objetos y grupos de forma uniforme",
+    "slug": "composite",
+    "category": "patterns",
+    "subcategory": "structural",
+    "description": "Cómo modelar jerarquías de objetos usando Composite para tratar nodos y hojas con la misma API.",
+    "keyTopics": [
+      "Composite",
+      "Structural Pattern",
+      "Tree",
+      "Hierarchy"
+    ],
+    "priority": 7,
+    "status": "pending"
+  },
+  {
+    "title": "Decorator en Java: Agregando comportamiento sin modificar clases",
+    "slug": "decorator",
+    "category": "patterns",
+    "subcategory": "structural",
+    "description": "Cómo extender responsabilidades dinámicamente mediante Decorator sin tocar el código base existente.",
+    "keyTopics": [
+      "Decorator",
+      "Structural Pattern",
+      "Composition",
+      "Runtime behavior"
+    ],
+    "priority": 8,
+    "status": "pending"
+  },
+  {
+    "title": "Flyweight en Java: Reduciendo el uso de memoria en objetos repetidos",
+    "slug": "flyweight",
+    "category": "patterns",
+    "subcategory": "structural",
+    "description": "Cómo compartir instancias para reducir el consumo de memoria cuando muchas entidades comparten estado repetido.",
+    "keyTopics": [
+      "Flyweight",
+      "Structural Pattern",
+      "Memory optimization",
+      "Shared state"
+    ],
+    "priority": 9,
+    "status": "pending"
+  },
+  {
+    "title": "Proxy en Java: Controlando acceso a objetos remotos o costosos",
+    "slug": "proxy",
+    "category": "patterns",
+    "subcategory": "structural",
+    "description": "Cómo utilizar Proxy para controlar acceso, lazy loading y seguridad sin cambiar la lógica del objeto real.",
+    "keyTopics": [
+      "Proxy",
+      "Structural Pattern",
+      "Access control",
+      "Lazy initialization"
+    ],
+    "priority": 10,
+    "status": "pending"
+  },
+  {
+    "title": "Strategy en Java: Cambiando algoritmos en tiempo de ejecución",
+    "slug": "strategy",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo encapsular algoritmos en familias de estrategias para intercambiarlos fácilmente según el contexto.",
+    "keyTopics": [
+      "Strategy",
+      "Behavioral Pattern",
+      "Algorithms",
+      "Runtime selection"
+    ],
+    "priority": 11,
+    "status": "pending"
+  },
+  {
+    "title": "Observer en Java: Reacción automática ante cambios de estado",
+    "slug": "observer",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo implementar un mecanismo de notificación para que varios observadores reaccionen cuando cambia el estado de un sujeto.",
+    "keyTopics": [
+      "Observer",
+      "Behavioral Pattern",
+      "Event-driven",
+      "Publish-subscribe"
+    ],
+    "priority": 12,
+    "status": "pending"
+  },
+  {
+    "title": "Command en Java: Encapsulando acciones como objetos",
+    "slug": "command",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo modelar operaciones como objetos para poder serializarlas, encolarlas, deshacer o ejecutar de forma desacoplada.",
+    "keyTopics": [
+      "Command",
+      "Behavioral Pattern",
+      "Queueing",
+      "Undo/redo"
+    ],
+    "priority": 13,
+    "status": "pending"
+  },
+  {
+    "title": "State en Java: Cambiando comportamiento según el estado",
+    "slug": "state",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo representar estados concretos para cambiar el comportamiento de un objeto sin lógica condicional excesiva.",
+    "keyTopics": [
+      "State",
+      "Behavioral Pattern",
+      "Finite states",
+      "Behavior switching"
+    ],
+    "priority": 14,
+    "status": "pending"
+  },
+  {
+    "title": "Iterator en Java: Recorrido uniforme de colecciones",
+    "slug": "iterator",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo abstraer el recorrido de una colección para acceder a sus elementos sin exponer su estructura interna.",
+    "keyTopics": [
+      "Iterator",
+      "Behavioral Pattern",
+      "Collections",
+      "Traversal"
+    ],
+    "priority": 15,
+    "status": "pending"
+  },
+  {
+    "title": "Template Method en Java: Definiendo el esqueleto de un algoritmo",
+    "slug": "template-method",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo definir una estructura base para un algoritmo y dejar ciertos pasos a la personalización de subclases.",
+    "keyTopics": [
+      "Template Method",
+      "Behavioral Pattern",
+      "Algorithm skeleton",
+      "Inheritance"
+    ],
+    "priority": 16,
+    "status": "pending"
+  },
+  {
+    "title": "Visitor en Java: Separando lógica de recorrido y operaciones",
+    "slug": "visitor",
+    "category": "patterns",
+    "subcategory": "behavioral",
+    "description": "Cómo aplicar operaciones sobre una estructura compleja sin mezclar la lógica de negocio con la estructura del árbol de objetos.",
+    "keyTopics": [
+      "Visitor",
+      "Behavioral Pattern",
+      "Tree traversal",
+      "Double dispatch"
+    ],
+    "priority": 17,
+    "status": "pending"
+  }
+]
