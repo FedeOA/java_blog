@@ -12,7 +12,7 @@
       "Thread safety"
     ],
     "priority": 1,
-    "status": "published"
+    "status": "pending"
   },
   {
     "title": "Factory Method en Java: Construcción flexible de objetos",
@@ -27,8 +27,7 @@
       "Dependency inversion"
     ],
     "priority": 2,
-    "status": "published",
-    "publishedAt": "2026-08-15T22:03:26.339Z"
+    "status": "pending"
   },
   {
     "title": "Abstract Factory en Java: familias de objetos coordinadas",
