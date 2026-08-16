@@ -31,7 +31,7 @@ function getCategoryConfig(topic) {
   const categoryConfig = CATEGORY_MAP[topic.category];
 
   if (!categoryConfig) {
-    throw new Error(`Categoría no configurada: ${topic.category}`);
+    throw new Error(`Category is not configured: ${topic.category}`);
   }
 
   const subcategoryConfig = topic.subcategory
@@ -39,7 +39,7 @@ function getCategoryConfig(topic) {
     : null;
 
   if (topic.subcategory && !subcategoryConfig) {
-    throw new Error(`Subcategoría no configurada: ${topic.category}/${topic.subcategory}`);
+    throw new Error(`Subcategory is not configured: ${topic.category}/${topic.subcategory}`);
   }
 
   return {

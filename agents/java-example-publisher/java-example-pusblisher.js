@@ -3,7 +3,7 @@ const { buildPrompt } = require('./prompt');
 const SYSTEM_PROMPT = 'You are an expert Java developer focused on clear, runnable examples and clean architecture.';
 
 // ============================================
-// AGENTE 4: Java Example Publisher
+// AGENT 4: Java Example Publisher
 // ============================================
 
 async function createJavaExample(topic, config, postMain) {
@@ -25,7 +25,7 @@ async function createJavaExample(topic, config, postMain) {
 
 function parseJavaExampleResponse(response) {
   if (typeof response !== 'string' || !response.trim()) {
-    throw new TypeError('La respuesta del agente Java debe ser un string no vacío');
+    throw new TypeError('The Java agent response must be a non-empty string');
   }
 
   let jsonContent = response.trim();
@@ -38,22 +38,22 @@ function parseJavaExampleResponse(response) {
   try {
     return JSON.parse(jsonContent);
   } catch (error) {
-    throw new Error(`La respuesta del agente Java no es JSON válido: ${error.message}`);
+    throw new Error(`The Java agent response is not valid JSON: ${error.message}`);
   }
 }
 
 function validateJavaExample(example, topic) {
   if (!example || typeof example !== 'object' || Array.isArray(example)) {
-    throw new TypeError('El ejemplo Java debe ser un objeto');
+    throw new TypeError('The Java example must be an object');
   }
 
   const expectedProjectPath = `${topic.slug}/example`;
   if (example.projectPath !== expectedProjectPath) {
-    throw new Error(`projectPath inválido: se esperaba "${expectedProjectPath}"`);
+    throw new Error(`Invalid projectPath: expected "${expectedProjectPath}"`);
   }
 
   if (!example.files || typeof example.files !== 'object' || Array.isArray(example.files)) {
-    throw new TypeError('El ejemplo Java debe incluir un objeto files');
+    throw new TypeError('The Java example must include a files object');
   }
 
   const requiredFiles = [
@@ -63,17 +63,17 @@ function validateJavaExample(example, topic) {
 
   for (const requiredFile of requiredFiles) {
     if (typeof example.files[requiredFile] !== 'string' || !example.files[requiredFile].trim()) {
-      throw new Error(`Falta el archivo requerido: ${requiredFile}`);
+      throw new Error(`Required file is missing: ${requiredFile}`);
     }
   }
 
   for (const [filePath, content] of Object.entries(example.files)) {
     if (!filePath || pathIsUnsafe(filePath)) {
-      throw new Error(`Ruta de archivo inválida: ${filePath}`);
+      throw new Error(`Invalid file path: ${filePath}`);
     }
 
     if (typeof content !== 'string') {
-      throw new TypeError(`El contenido de ${filePath} debe ser un string`);
+      throw new TypeError(`The content of ${filePath} must be a string`);
     }
   }
 }

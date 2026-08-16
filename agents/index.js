@@ -9,7 +9,6 @@ const {
   markTopicAsPublished
 } = require('./topic-manager/topic-manager');
 const { createJavaExample } = require('./java-example-publisher/java-example-pusblisher');
-const { generateLinkedInPost, updateBlogStructure } = require('./linkedin-publisher/linkedin-publisher');
 const { callClaudeAPI } = require('./cloud-api');
 
 module.exports = {
@@ -20,7 +19,5 @@ module.exports = {
   updateIndex,
   createPostCard,
   createJavaExample,
-  generateLinkedInPost,
-  updateBlogStructure,
   callClaudeAPI
 };

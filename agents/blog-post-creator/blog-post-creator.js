@@ -16,12 +16,12 @@ async function createPost(topic, config) {
   console.log('\n✍️  Agent: Blog Post Creator\n');
 
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
-    throw new TypeError('config debe ser un objeto obligatorio');
+    throw new TypeError('config must be a required object');
   }
 
   const selectedTopic = topic || getNextPendingTopic();
   if (!selectedTopic) {
-    throw new Error('No hay temas pendientes en agents/blog-topics.json');
+    throw new Error('No pending topics found in agents/blog-topics.json');
   }
 
   const normalizedTopic = {
@@ -81,13 +81,13 @@ function loadBlogConfig(filePath = path.join(process.cwd(), 'blog-automation.jso
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
-    throw new Error(`No se pudo leer la configuración del blog: ${error.message}`);
+    throw new Error(`Could not read the blog configuration: ${error.message}`);
   }
 }
 
 function updateIndex(normalizedTopic, description, postHref, indexPath) {
   if (!fs.existsSync(indexPath)) {
-    console.warn(`⚠️  Archivo de índice no encontrado: ${indexPath}`);
+    console.warn(`⚠️  Index file not found: ${indexPath}`);
     return false;
   }
 
@@ -95,7 +95,7 @@ function updateIndex(normalizedTopic, description, postHref, indexPath) {
   const mainTag = /<main\b[^>]*>/i;
 
   if (!mainTag.test(indexContent)) {
-    console.warn(`⚠️  No se encontró el tag <main> en ${indexPath}`);
+    console.warn(`⚠️  The <main> tag was not found in ${indexPath}`);
     return false;
   }
 
@@ -106,7 +106,7 @@ function updateIndex(normalizedTopic, description, postHref, indexPath) {
   );
 
   fs.writeFileSync(indexPath, updatedContent);
-  console.log(`✅ Índice actualizado: ${indexPath}`);
+  console.log(`✅ Index updated: ${indexPath}`);
   return true;
 }
 
@@ -189,7 +189,7 @@ function updatePatternsIndex(
   }
 
   if (!fs.existsSync(indexPath)) {
-    console.warn(`⚠️  Archivo de patrones no encontrado: ${indexPath}`);
+    console.warn(`⚠️  Patterns index not found: ${indexPath}`);
     return false;
   }
 
@@ -197,7 +197,7 @@ function updatePatternsIndex(
   const slugIndex = lines.findIndex(line => line.toLowerCase().includes(normalizedTopic.slug.toLowerCase()));
 
   if (slugIndex === -1) {
-    console.warn(`⚠️  No se encontró el slug "${normalizedTopic.slug}" en ${indexPath}`);
+    console.warn(`⚠️  Slug "${normalizedTopic.slug}" was not found in ${indexPath}`);
     return false;
   }
 
@@ -210,17 +210,17 @@ function updatePatternsIndex(
 
 function writePostFile(postPath, htmlContent) {
   if (typeof postPath !== 'string' || !postPath.trim()) {
-    throw new TypeError('postPath debe ser una ruta no vacía');
+    throw new TypeError('postPath must be a non-empty path');
   }
 
   if (typeof htmlContent !== 'string') {
-    throw new TypeError('htmlContent debe ser un string');
+    throw new TypeError('htmlContent must be a string');
   }
 
   const postDirectory = path.dirname(postPath);
   fs.mkdirSync(postDirectory, { recursive: true });
   fs.writeFileSync(postPath, htmlContent, 'utf8');
-  console.log(`✅ Post creado: ${postPath}`);
+  console.log(`✅ Post created: ${postPath}`);
 
   return { path: postPath };
 }

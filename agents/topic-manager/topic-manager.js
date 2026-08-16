@@ -22,7 +22,7 @@ function loadTopics(filePath = TOPICS_FILE) {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.warn(`⚠️  No pude leer la lista de temas en ${filePath}:`, error.message);
+    console.warn(`⚠️  Could not read the topic list at ${filePath}:`, error.message);
     return [];
   }
 }
@@ -33,27 +33,27 @@ function isPendingTopic(topic) {
 
 function markTopicAsPublished(slug, filePath = TOPICS_FILE) {
   if (typeof slug !== 'string' || !slug.trim()) {
-    throw new TypeError('slug debe ser un string obligatorio');
+    throw new TypeError('slug must be a required string');
   }
 
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Archivo de temas no encontrado: ${filePath}`);
+    throw new Error(`Topics file not found: ${filePath}`);
   }
 
   let topics;
   try {
     topics = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
-    throw new Error(`No se pudo leer la lista de temas: ${error.message}`);
+    throw new Error(`Could not read the topic list: ${error.message}`);
   }
 
   if (!Array.isArray(topics)) {
-    throw new TypeError('La lista de temas debe ser un array');
+    throw new TypeError('The topic list must be an array');
   }
 
   const topic = topics.find(candidate => candidate?.slug === slug);
   if (!topic) {
-    throw new Error(`No se encontró el tema con slug "${slug}"`);
+    throw new Error(`Topic with slug "${slug}" was not found`);
   }
 
   topic.status = 'published';

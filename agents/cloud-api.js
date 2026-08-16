@@ -2,15 +2,15 @@ const axios = require('axios');
 
 async function callClaudeAPI(prompt, config, systemPrompt, language) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
-    throw new TypeError('config debe ser un objeto obligatorio');
+    throw new TypeError('config must be a required object');
   }
 
   if (typeof systemPrompt !== 'string' || !systemPrompt.trim()) {
-    throw new TypeError('systemPrompt debe ser un string obligatorio');
+    throw new TypeError('systemPrompt must be a required string');
   }
 
   if (typeof language !== 'string' || !language.trim()) {
-    throw new TypeError('language debe ser un string obligatorio');
+    throw new TypeError('language must be a required string');
   }
 
   if (!config.apiKey) {

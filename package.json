@@ -6,7 +6,7 @@
   "scripts": {
     "publish": "node scripts/orchestrate.js",
     "dev": "dotenv -e .env node scripts/orchestrate.js",
-    "test": "node scripts/test.js"
+    "test": "node --check scripts/orchestrate.js && node --check \"scripts/git/git,js\" && node --check agents/index.js && node --check agents/cloud-api.js && node --check agents/topic-manager/topic-manager.js"
   },
   "keywords": [
     "blog",
