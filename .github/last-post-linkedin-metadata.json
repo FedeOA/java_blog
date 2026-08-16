@@ -1,7 +1,7 @@
 {
   "topic": "Factory Method en Java: Construcción flexible de objetos",
   "slug": "factory-method",
-  "postLink": "https://tu-blog.com/categories/patterns/post-factory-method.html",
+  "postLink": "https://tu-blog.com/categories/patterns/creational/post-factory-method.html",
   "codeLink": "https://github.com/FedeOA/factory-method",
   "linkedinPost": null,
   "createdAt": "2026-08-15T22:03:23.824Z",
