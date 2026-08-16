@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singleton en Java: Controlando la instancia única</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Singleton en Java: Controlando la instancia única</h1>
+    <p>Cómo implementar el patrón Singleton para garantizar una sola instancia y controlar el acceso global a recursos compartidos.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Singleton?</h2>
+    <p>El patrón Singleton es uno de los patrones creacionales más conocidos y utilizados en el desarrollo de software orientado a objetos. Su propósito es sencillo pero poderoso: garantizar que una clase tenga una única instancia durante todo el ciclo de vida de una aplicación, y proporcionar un punto de acceso global a dicha instancia.</p>
+    <p>En Java, este patrón se aplica comúnmente cuando necesitamos coordinar acciones a través de un recurso compartido, como una conexión a base de datos, un gestor de configuración, un logger o un pool de conexiones. La idea central es evitar que se creen múltiples instancias de una clase cuando, por diseño, solo debería existir una.</p>
+  </section>
+
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>Imaginemos una aplicación que necesita gestionar la configuración global del sistema. Si cualquier parte del código puede instanciar libremente la clase <code>ConfiguracionApp</code>, podríamos terminar con múltiples objetos de configuración, cada uno con valores potencialmente distintos. Esto genera inconsistencias difíciles de detectar y depurar.</p>
+    <p>Otro escenario común es el manejo de recursos costosos, como conexiones a bases de datos o sistemas de archivos. Crear una nueva instancia cada vez que se necesita acceder a estos recursos puede resultar ineficiente en términos de memoria y rendimiento, además de generar problemas de concurrencia si no se controla adecuadamente el acceso.</p>
+    <p>En aplicaciones multihilo, el problema se agrava: si varios hilos intentan crear instancias simultáneamente sin ningún mecanismo de control, podríamos terminar con varias instancias activas al mismo tiempo, violando la premisa fundamental del patrón y generando comportamientos inesperados en el sistema.</p>
+  </section>
+
+  <section>
+    <h2>Solución</h2>
+    <p>El patrón Singleton resuelve este problema restringiendo la creación de instancias de una clase a un único objeto. Esto se logra mediante tres elementos clave: un constructor privado que impide la instanciación externa, un atributo estático que almacena la única instancia, y un método público estático que devuelve esa instancia, creándola si aún no existe.</p>
+    <p>De esta manera, cualquier parte del código que necesite acceder al recurso compartido lo hace a través del mismo punto de entrada, garantizando consistencia y control centralizado. Además, en entornos concurrentes, es fundamental aplicar mecanismos de sincronización adecuados para evitar condiciones de carrera durante la creación de la instancia.</p>
+    <p>Existen varias formas de implementar este patrón en Java, cada una con sus propias ventajas según el contexto: inicialización perezosa (lazy initialization), inicialización temprana (eager initialization), el patrón de doble verificación (double-checked locking) y el uso de enumeraciones, que resulta ser una de las formas más seguras y recomendadas.</p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li><strong>Constructor privado</strong>: impide que otras clases puedan instanciar el Singleton directamente mediante el operador <code>new</code>.</li>
+      <li><strong>Instancia estática</strong>: variable de clase que almacena la única referencia al objeto Singleton.</li>
+      <li><strong>Método de acceso estático</strong>: típicamente llamado <code>getInstance()</code>, es el único punto de entrada para obtener la instancia.</li>
+      <li><strong>Thread safety</strong>: mecanismo necesario para garantizar que en entornos multihilo no se creen múltiples instancias simultáneamente.</li>
+      <li><strong>Lazy vs Eager initialization</strong>: decisión de diseño sobre si la instancia se crea al cargar la clase o solo cuando se solicita por primera vez.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java</h2>
+    <p>A continuación se muestra una implementación básica utilizando inicialización perezosa con sincronización simple, adecuada para entender el concepto fundamental:</p>
+    <pre><code class="language-java">
+public class ConfiguracionApp {
+
+    private static ConfiguracionApp instancia;
+    private String entorno;
+
+    // Constructor privado evita instanciación externa
+    private ConfiguracionApp() {
+        this.entorno = "produccion";
+    }
+
+    public static synchronized ConfiguracionApp getInstance() {
+        if (instancia == null) {
+            instancia = new ConfiguracionApp();
+        }
+        return instancia;
+    }
+
+    public String getEntorno() {
+        return entorno;
+    }
+
+    public void setEntorno(String entorno) {
+        this.entorno = entorno;
+    }
+}
+    </code></pre>
+    <p>Aunque este ejemplo es funcional, el uso de <code>synchronized</code> en el método completo puede generar un costo de rendimiento innecesario, especialmente cuando el método se invoca frecuentemente. Para optimizar esto, podemos aplicar el patrón de doble verificación (double-checked locking):</p>
+    <pre><code class="language-java">
+public class ConexionBaseDatos {
+
+    private static volatile ConexionBaseDatos instancia;
+    private String url;
+
+    private ConexionBaseDatos() {
+        this.url = "jdbc:mysql://localhost:3306/appdb";
+        // Simulación de inicialización costosa
+    }
+
+    public static ConexionBaseDatos getInstance() {
+        if (instancia == null) {
+            synchronized (ConexionBaseDatos.class) {
+                if (instancia == null) {
+                    instancia = new ConexionBaseDatos();
+                }
+            }
+        }
+        return instancia;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+}
+    </code></pre>
+    <p>Notemos el uso de la palabra clave <code>volatile</code>, esencial para garantizar la visibilidad correcta de la variable entre hilos y evitar problemas de reordenamiento de instrucciones por parte del compilador JIT.</p>
+    <p>Finalmente, la forma más robusta y recomendada por muchos expertos, incluido Joshua Bloch en <em>Effective Java</em>, es utilizar un <code>enum</code>, que garantiza thread-safety de forma nativa y protege contra ataques de serialización y reflexión:</p>
+    <pre><code class="language-java">
+public enum GestorLogs {
+
+    INSTANCE;
+
+    public void log(String mensaje) {
+        System.out.println("[LOG] " + mensaje);
+    }
+}
+
+// Uso
+public class Main {
+    public static void main(String[] args) {
+        GestorLogs.INSTANCE.log("Aplicación iniciada correctamente");
+    }
+}
+    </code></pre>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/singleton"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Cuando se necesita un único punto de acceso a un recurso compartido, como configuración global o gestores de caché.</li>
+      <li>Al implementar loggers que deben centralizar la escritura de mensajes en toda la aplicación.</li>
+      <li>Para gestionar pools de conexiones a bases de datos, donde crear múltiples instancias resultaría costoso e ineficiente.</li>
+      <li>En sistemas donde se requiere coordinar el acceso a hardware específico, como impresoras o dispositivos de entrada/salida.</li>
+      <li>Cuando se necesita mantener un estado global consistente accesible desde diferentes módulos de la aplicación.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li>Garantiza que solo exista una instancia de la clase, evitando inconsistencias en el estado compartido.</li>
+      <li>Proporciona un punto de acceso global controlado, facilitando la gestión centralizada de recursos.</li>
+      <li>Permite inicialización perezosa, optimizando el uso de memoria al crear el objeto solo cuando es necesario.</li>
+      <li>La implementación mediante <code>enum</code> ofrece protección automática contra serialización y reflexión.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li>Puede dificultar las pruebas unitarias, ya que introduce un estado global que puede afectar el aislamiento entre tests.</li>
+      <li>Si no se implementa correctamente, puede generar problemas de concurrencia en entornos multihilo.</li>
+      <li>Su uso excesivo puede convertirse en un antipatrón, actuando como una variable global disfrazada y violando el principio de responsabilidad única.</li>
+      <li>Dificulta la inyección de dependencias, lo que puede complicar el mantenimiento en aplicaciones que utilizan frameworks como Spring.</li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
