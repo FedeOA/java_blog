@@ -2,8 +2,23 @@ function buildPrompt(topic, postMain = '') {
   return `
 You are an expert Java developer. Create a complete, runnable Java example based on the topic: "${topic.title}"
 
-Use the following HTML main content from the blog post as technical context:
+Use the following HTML main content from the blog post only as technical context:
 ${postMain}
+
+The blog post explains the topic, but it is not a template to copy. Create an
+original example that teaches the same concept through a different, self-contained
+scenario.
+
+Originality requirements:
+- Do not reproduce the exact example, domain, use case, story, or execution flow from the post.
+- Choose a different realistic domain and invent your own classes, interfaces, data,
+  method names, and sample values.
+- Do not copy class names, variable names, code blocks, DTOs, or file structure from
+  the post unless a name is required by the Java language or by this output contract.
+- Preserve the underlying Java concept or design pattern, but demonstrate it with
+  a fresh implementation that can stand on its own.
+- The README must explain why the generated scenario is an independent example and
+  must document the roles of the new classes in that scenario.
 
 Project layout:
 - The project root is "${topic.slug}/example/".
@@ -12,31 +27,18 @@ Project layout:
 - Organize Java classes by responsibility instead of placing every class in the same package.
 - Create only the layers that are genuinely needed by the example. Do not create empty or artificial layers.
 
-Use this layered package structure when those responsibilities exist:
-- com.blog.example.config: configuration classes and constants
-- com.blog.example.model: domain objects, DTOs, and value objects
-- com.blog.example.repository: data access or in-memory storage
-- com.blog.example.service: business logic and use cases
-- com.blog.example.controller: application entry points or request coordination
-- com.blog.example.util: small reusable technical utilities only
-- com.blog.example: Main.java and classes that do not belong to a specific layer
-
-The project should follow this general structure:
-${topic.slug}/example/
-├── README.md
-└── src/main/java/com/blog/example/
-  ├── Main.java
-  ├── config/
-  ├── model/
-  ├── repository/
-  ├── service/
-  ├── controller/
-  └── util/
-
-The folders shown above are examples of possible layers, not mandatory files.
-Each class must be placed in the layer that matches its responsibility, and its package declaration
-must match its path. Main.java should coordinate a small demonstration by calling the appropriate
-service or application class; it must not contain all business logic.
+Organize the source files into packages or layers according to their actual
+responsibilities and the needs of the example. Use your judgment:
+- Separate classes when doing so makes the design, pattern roles, or execution flow clearer.
+- Keep closely related classes together when splitting them would add ceremony without value.
+- Create only the packages that are genuinely needed; do not force config, model,
+  repository, service, controller, or util packages into every project.
+- Do not create empty, artificial, or speculative layers merely to follow a template.
+- Keep the package structure proportionate to the size and complexity of the example.
+- Every class must be placed where its responsibility is clearest, and its package
+  declaration must match its path.
+- Main.java should coordinate a small demonstration by calling the relevant classes;
+  it should not contain all business logic.
 
 Required files:
 - src/main/java/com/blog/example/Main.java with a public static void main(String[] args)
@@ -49,7 +51,8 @@ Requirements:
 - Code must compile and run without errors
 - Main.java must be executable with javac and the Java command
 - Classes must have a single clear responsibility
-- Do not put service, configuration, model, repository, and utility classes all in the root package
+- Avoid putting unrelated responsibilities in one package, but do not split simple
+  examples into unnecessary packages
 - Use imports between layers consistently and avoid circular dependencies
 - Clear English comments and naming
 - Do not use markdown fences inside file contents
