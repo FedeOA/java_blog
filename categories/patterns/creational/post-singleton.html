@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singleton en Java: Controlando la instancia única</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Singleton en Java: Controlando la instancia única</h1>
+    <p>Cómo implementar el patrón Singleton para garantizar una sola instancia y controlar el acceso global a recursos compartidos.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Singleton?</h2>
+    <p>El patrón Singleton es uno de los patrones de diseño creacionales más conocidos y utilizados en el desarrollo de software orientado a objetos. Su propósito es garantizar que una clase tenga una única instancia durante todo el ciclo de vida de una aplicación, proporcionando además un punto de acceso global a dicha instancia. En Java, este patrón se implementa habitualmente controlando la creación de objetos mediante constructores privados y métodos estáticos que devuelven siempre la misma referencia.</p>
+    <p>La idea detrás de este patrón surge de la necesidad de coordinar acciones a través de un sistema mediante un único objeto compartido, en lugar de permitir que múltiples instancias compitan o generen inconsistencias. Ejemplos típicos incluyen gestores de configuración, conexiones a bases de datos, loggers o cachés en memoria, donde tener más de una instancia podría causar comportamientos inesperados o un uso ineficiente de recursos.</p>
+  </section>
+
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>En muchas aplicaciones Java existen recursos que, por su naturaleza, deben ser únicos y compartidos por todos los componentes del sistema. Pensemos en un gestor de configuración que lee propiedades desde un archivo, o en un pool de conexiones a base de datos. Si cada parte del código pudiera crear su propia instancia de estas clases mediante el operador <code>new</code>, se generarían múltiples copias del mismo recurso, lo que podría derivar en inconsistencias de estado, consumo innecesario de memoria, condiciones de carrera o incluso errores difíciles de depurar.</p>
+    <p>Además, sin un mecanismo de control centralizado, resulta complicado garantizar que todas las partes de la aplicación trabajen con la misma información actualizada. Por ejemplo, si un componente modifica un valor de configuración en su propia instancia, otros componentes que usan instancias distintas no se enterarán de ese cambio. Esto rompe la coherencia del sistema y complica el mantenimiento del código a largo plazo.</p>
+    <p>El problema se agrava en entornos multihilo, donde varias instancias creadas simultáneamente desde distintos hilos podrían generar comportamientos no deterministas, especialmente si el recurso compartido gestiona estado mutable, como contadores, cachés o conexiones.</p>
+  </section>
+
+  <section>
+    <h2>Solución</h2>
+    <p>El patrón Singleton resuelve este problema restringiendo la creación de instancias de una clase a un único punto de control. Esto se logra generalmente siguiendo tres pasos fundamentales: declarar el constructor de la clase como privado (para evitar que se instancie desde fuera), mantener una referencia estática privada a la única instancia, y exponer un método estático público, comúnmente llamado <code>getInstance()</code>, que devuelve siempre esa misma referencia.</p>
+    <p>De esta manera, cualquier parte del código que necesite acceder al recurso compartido lo hace a través de este método, garantizando que siempre trabajará con el mismo objeto. Existen varias formas de implementar este patrón en Java, cada una con sus propias ventajas según el contexto: inicialización perezosa (lazy initialization), inicialización temprana (eager initialization), uso de bloques sincronizados para entornos concurrentes, o el patrón "enum singleton", considerado por muchos como la forma más robusta y segura de implementarlo.</p>
+    <p>La elección de la estrategia adecuada dependerá de factores como el costo de creación del objeto, la necesidad de thread-safety y la simplicidad que se desee mantener en el código.</p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li><strong>Constructor privado</strong>: impide que otras clases puedan instanciar el Singleton directamente mediante <code>new</code>.</li>
+      <li><strong>Instancia estática</strong>: variable de clase que almacena la única referencia al objeto Singleton durante toda la ejecución.</li>
+      <li><strong>Método de acceso global</strong>: método estático (normalmente <code>getInstance()</code>) que expone la instancia única a cualquier parte del código.</li>
+      <li><strong>Lazy initialization</strong>: técnica que retrasa la creación del objeto hasta el momento en que realmente se necesita, optimizando el uso de recursos.</li>
+      <li><strong>Thread safety</strong>: garantía de que la instancia se crea correctamente incluso cuando múltiples hilos acceden simultáneamente al método de acceso.</li>
+      <li><strong>Enum Singleton</strong>: variante que aprovecha las características intrínsecas de los enums en Java para garantizar unicidad y seguridad frente a la serialización y la reflexión.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java</h2>
+    <p>A continuación se muestra una implementación clásica de Singleton con inicialización perezosa, sin control de concurrencia. Es útil para entender la estructura básica del patrón, aunque no es recomendable en entornos multihilo sin las protecciones adecuadas:</p>
+    <pre><code class="language-java">
+public class ConfiguracionApp {
+
+    private static ConfiguracionApp instancia;
+    private String entorno;
+
+    // Constructor privado evita instanciación externa
+    private ConfiguracionApp() {
+        this.entorno = "produccion";
+    }
+
+    public static ConfiguracionApp getInstance() {
+        if (instancia == null) {
+            instancia = new ConfiguracionApp();
+        }
+        return instancia;
+    }
+
+    public String getEntorno() {
+        return entorno;
+    }
+
+    public void setEntorno(String entorno) {
+        this.entorno = entorno;
+    }
+}
+    </code></pre>
+    <p>Este enfoque presenta un problema evidente en entornos concurrentes: si dos hilos llaman a <code>getInstance()</code> al mismo tiempo cuando <code>instancia</code> aún es <code>null</code>, podrían crearse dos objetos distintos, violando el principio del patrón. Para solucionarlo, podemos usar sincronización:</p>
+    <pre><code class="language-java">
+public class ConexionBaseDatos {
+
+    private static volatile ConexionBaseDatos instancia;
+
+    private ConexionBaseDatos() {
+        // Simula una conexión costosa de establecer
+        System.out.println("Estableciendo conexión con la base de datos...");
+    }
+
+    public static ConexionBaseDatos getInstance() {
+        if (instancia == null) {
+            synchronized (ConexionBaseDatos.class) {
+                if (instancia == null) {
+                    instancia = new ConexionBaseDatos();
+                }
+            }
+        }
+        return instancia;
+    }
+
+    public void ejecutarConsulta(String consulta) {
+        System.out.println("Ejecutando: " + consulta);
+    }
+}
+    </code></pre>
+    <p>Este patrón, conocido como "double-checked locking", combina la palabra clave <code>volatile</code> con un bloque sincronizado para minimizar el impacto en rendimiento, ya que la sincronización solo ocurre durante la creación inicial del objeto y no en accesos posteriores.</p>
+    <p>Finalmente, la forma más segura y recomendada por muchos expertos en Java, incluyendo Joshua Bloch en su libro "Effective Java", es utilizar un enum:</p>
+    <pre><code class="language-java">
+public enum GestorLogs {
+
+    INSTANCE;
+
+    public void registrar(String mensaje) {
+        System.out.println("[LOG] " + mensaje);
+    }
+}
+    </code></pre>
+    <p>Esta variante garantiza thread-safety de forma automática, protege contra ataques de reflexión y serialización, y resulta extremadamente concisa, siendo la opción preferida cuando no se requiere herencia ni lógica de inicialización compleja.</p>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/singleton"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Cuando se necesita un único punto de acceso a un recurso compartido, como un gestor de configuración o un pool de conexiones.</li>
+      <li>Cuando la creación de múltiples instancias de una clase implicaría un desperdicio de recursos, como en el caso de conexiones costosas o cachés en memoria.</li>
+      <li>Cuando se requiere coordinar el estado global de una aplicación de manera centralizada y consistente.</li>
+      <li>Cuando se necesita implementar servicios de logging, auditoría o monitoreo que deben registrar eventos desde un único punto de control.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li>Garantiza que exista una única instancia de la clase, evitando inconsistencias de estado.</li>
+      <li>Proporciona un punto de acceso global y controlado al recurso compartido.</li>
+      <li>Permite inicialización perezosa, optimizando el uso de recursos hasta que realmente se necesiten.</li>
+      <li>Facilita el control centralizado sobre recursos costosos, como conexiones de red o archivos de configuración.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li>Puede dificultar las pruebas unitarias, ya que introduce un estado global que puede persistir entre tests si no se gestiona con cuidado.</li>
+      <li>Si se implementa incorrectamente en entornos multihilo, puede generar condiciones de carrera y errores difíciles de reproducir.</li>
+      <li>Puede convertirse en un antipatrón si se abusa de él, ya que introduce acoplamiento oculto entre componentes que dependen del estado global.</li>
+      <li>Dificulta la extensibilidad y la inyección de dependencias, ya que el propio patrón controla su instanciación de forma rígida.</li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
