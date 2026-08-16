@@ -1,0 +1,30 @@
+{
+  "name": "java-blog-automation",
+  "version": "1.0.0",
+  "description": "Automatic Java blog post publisher with Claude AI integration",
+  "main": "scripts/orchestrate.js",
+  "scripts": {
+    "publish": "node scripts/orchestrate.js",
+    "dev": "dotenv -e .env node scripts/orchestrate.js",
+    "test": "node --check scripts/orchestrate.js && node --check \"scripts/git/git,js\" && node --check agents/index.js && node --check agents/cloud-api.js && node --check agents/topic-manager/topic-manager.js"
+  },
+  "keywords": [
+    "blog",
+    "automation",
+    "java",
+    "claude",
+    "github-actions"
+  ],
+  "author": "Federico Oscar Acosta",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^7.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
