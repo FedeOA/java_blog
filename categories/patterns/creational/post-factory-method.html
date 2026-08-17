@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factory Method en Java: Construcción flexible de objetos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Factory Method en Java: Construcción flexible de objetos</h1>
+    <p>Cómo encapsular la creación de objetos con Factory Method para desacoplar dependencias y mejorar la extensibilidad.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el Factory Method?</h2>
+    <p>
+      El <strong>Factory Method</strong> es un patrón de diseño creacional que define una interfaz para crear objetos,
+      pero delega a las subclases la decisión de qué clase concreta instanciar. En lugar de llamar directamente al
+      constructor de una clase con <code>new</code>, se invoca un método especializado que se encarga de construir
+      y devolver el objeto adecuado según el contexto.
+    </p>
+    <p>
+      Este patrón forma parte del catálogo clásico de patrones de diseño presentado por la Gang of Four (GoF) en su
+      libro <em>Design Patterns: Elements of Reusable Object-Oriented Software</em>. Su propósito principal es
+      <strong>desacoplar el código que usa un objeto del código que lo crea</strong>, favoreciendo así la extensibilidad
+      y el mantenimiento de la aplicación a largo plazo.
+    </p>
+    <p>
+      Cuando hablamos de Factory Method, estamos hablando de polimorfismo aplicado a la construcción de objetos.
+      El cliente trabaja siempre con una abstracción (interfaz o clase abstracta), sin necesidad de conocer los
+      detalles de las implementaciones concretas que se crean detrás de escena.
+    </p>
+  </section>
+
+  <section>
+    <h2>El problema: acoplamiento en la creación de objetos</h2>
+    <p>
+      Imagina que estás desarrollando una aplicación que debe procesar notificaciones. Al principio, solo necesitas
+      enviar correos electrónicos, así que escribes algo como esto directamente en tu servicio:
+    </p>
+    <pre><code class="language-java">public class NotificationService {
+
+    public void send(String message) {
+        EmailNotification notification = new EmailNotification();
+        notification.send(message);
+    }
+}
+    </code></pre>
+    <p>
+      El problema aparece cuando el negocio evoluciona y ahora también necesitas enviar SMS, notificaciones push y
+      mensajes de Slack. Cada vez que surge un nuevo tipo de notificación, tienes que modificar <code>NotificationService</code>,
+      añadiendo condicionales y nuevas dependencias. El código crece en complejidad y fragilidad, violando el
+      <strong>Principio Abierto/Cerrado</strong> (Open/Closed Principle): las entidades de software deben estar
+      abiertas para extensión, pero cerradas para modificación.
+    </p>
+    <p>
+      Además, la clase <code>NotificationService</code> queda fuertemente acoplada a las implementaciones concretas.
+      Esto dificulta las pruebas unitarias, ya que no puedes inyectar fácilmente objetos de prueba (mocks), y
+      complica la reutilización del código en otros contextos. El principio de <strong>inversión de dependencias</strong>
+      nos dice que los módulos de alto nivel no deben depender de módulos de bajo nivel, sino de abstracciones;
+      este diseño viola precisamente eso.
+    </p>
+  </section>
+
+  <section>
+    <h2>La solución: delegar la creación a un método especializado</h2>
+    <p>
+      La solución que propone el Factory Method consiste en introducir una abstracción para la creación del objeto.
+      Definimos un método —el <em>factory method</em>— en una clase base o interfaz, y cada subclase o implementación
+      concreta decide qué tipo de objeto construir cuando ese método es invocado.
+    </p>
+    <p>
+      El cliente deja de depender de las clases concretas. Solo conoce la abstracción del producto y el creador,
+      lo que le permite trabajar de forma genérica. Cuando se necesita un nuevo tipo de producto, simplemente se
+      crea una nueva subclase del creador que sobreescribe el factory method, sin tocar el código existente.
+    </p>
+    <p>
+      Aplicando este patrón a nuestro ejemplo de notificaciones, el diseño quedaría así:
+    </p>
+    <pre><code class="language-java">// Producto: interfaz común para todas las notificaciones
+public interface Notification {
+    void send(String message);
+}
+
+// Productos concretos
+public class EmailNotification implements Notification {
+    @Override
+    public void send(String message) {
+        System.out.println("Enviando email: " + message);
+    }
+}
+
+public class SmsNotification implements Notification {
+    @Override
+    public void send(String message) {
+        System.out.println("Enviando SMS: " + message);
+    }
+}
+
+public class PushNotification implements Notification {
+    @Override
+    public void send(String message) {
+        System.out.println("Enviando notificación push: " + message);
+    }
+}
+
+// Creador: define el factory method
+public abstract class NotificationCreator {
+
+    // Factory Method
+    public abstract Notification createNotification();
+
+    // Lógica de negocio que usa el producto
+    public void notify(String message) {
+        Notification notification = createNotification();
+        notification.send(message);
+    }
+}
+
+// Creadores concretos
+public class EmailNotificationCreator extends NotificationCreator {
+    @Override
+    public Notification createNotification() {
+        return new EmailNotification();
+    }
+}
+
+public class SmsNotificationCreator extends NotificationCreator {
+    @Override
+    public Notification createNotification() {
+        return new SmsNotification();
+    }
+}
+
+public class PushNotificationCreator extends NotificationCreator {
+    @Override
+    public Notification createNotification() {
+        return new PushNotification();
+    }
+}
+    </code></pre>
+    <p>
+      Ahora, el método <code>notify</code> en <code>NotificationCreator</code> trabaja únicamente con la interfaz
+      <code>Notification</code>. No importa qué implementación concreta se use; el comportamiento es correcto
+      en todos los casos gracias al polimorfismo.
+    </p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li>
+        <strong>Producto (Product)</strong>: la interfaz o clase abstracta que define el contrato que deben cumplir
+        todos los objetos que el factory method puede crear. En nuestro ejemplo, es la interfaz <code>Notification</code>.
+      </li>
+      <li>
+        <strong>Producto concreto (Concrete Product)</strong>: las implementaciones específicas del producto.
+        Cada una encapsula un comportamiento particular. Son las clases <code>EmailNotification</code>,
+        <code>SmsNotification</code> y <code>PushNotification</code>.
+      </li>
+      <li>
+        <strong>Creador (Creator)</strong>: la clase abstracta o interfaz que declara el factory method. Puede
+        contener lógica de negocio que depende del producto, pero delega su creación al método abstracto.
+        Corresponde a <code>NotificationCreator</code>.
+      </li>
+      <li>
+        <strong>Creador concreto (Concrete Creator)</strong>: sobreescribe el factory method para devolver una
+        instancia de un producto concreto específico. Son las clases <code>EmailNotificationCreator</code>,
+        <code>SmsNotificationCreator</code> y <code>PushNotificationCreator</code>.
+      </li>
+      <li>
+        <strong>Polimorfismo</strong>: el mecanismo clave que permite que el creador trabaje con cualquier producto
+        concreto a través de la interfaz común, sin necesidad de conocer su tipo exacto en tiempo de compilación.
+      </li>
+      <li>
+        <strong>Inversión de dependencias</strong>: tanto el creador como el cliente dependen de abstracciones
+        (<code>Notification</code>), no de implementaciones concretas, siguiendo el principio DIP de SOLID.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java: Factory Method con parámetro de selección</h2>
+    <p>
+      Una variante muy habitual del patrón en proyectos reales es implementar el factory method con un parámetro
+      que determina qué tipo de objeto se debe crear. Esto centraliza la lógica de selección en un único punto
+      y simplifica el código del cliente:
+    </p>
+    <pre><code class="language-java">public enum NotificationType {
+    EMAIL, SMS, PUSH
+}
+
+public class NotificationFactory {
+
+    public static Notification create(NotificationType type) {
+        return switch (type) {
+            case EMAIL -> new EmailNotification();
+            case SMS   -> new SmsNotification();
+            case PUSH  -> new PushNotification();
+        };
+    }
+}
+
+// Uso desde el cliente
+public class Application {
+
+    public static void main(String[] args) {
+        Notification notification = NotificationFactory.create(NotificationType.EMAIL);
+        notification.send("Tu pedido ha sido confirmado.");
+
+        Notification sms = NotificationFactory.create(NotificationType.SMS);
+        sms.send("Tu código de verificación es 4821.");
+    }
+}
+    </code></pre>
+    <p>
+      Esta variante, conocida a veces como <strong>Static Factory Method</strong>, no sigue al pie de la letra
+      la estructura original del GoF —ya que no usa herencia para delegar la creación—, pero es ampliamente
+      utilizada por su simplicidad y es perfectamente válida cuando no se necesita extender el creador mediante
+      subclases. Java mismo la emplea en métodos como <code>List.of()</code>, <code>Optional.of()</code> o
+      <code>LocalDate.of()</code>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/factory-method"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>
+        Cuando el código que crea objetos no debe conocer de antemano el tipo exacto de objeto que necesita,
+        sino trabajar con una abstracción.
+      </li>
+      <li>
+        Cuando anticipas que el sistema deberá soportar nuevos tipos de productos en el futuro y quieres que
+        esas extensiones no requieran modificar el código existente.
+      </li>
+      <li>
+        Cuando la lógica de creación de un objeto es compleja o reutilizable y conviene encapsularla en un
+        único lugar para evitar duplicación.
+      </li>
+      <li>
+        Cuando deseas facilitar las pruebas unitarias, permitiendo que el creador sea sustituido por una
+        implementación de prueba que devuelva objetos mock o stub.
+      </li>
+      <li>
+        Cuando trabajas con frameworks o librerías que esperan que registres o configures creadores de objetos
+        (por ejemplo, <code>BeanFactory</code> en Spring).
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li>
+        <strong>Desacoplamiento</strong>: el cliente trabaja con abstracciones, lo que reduce las dependencias
+        entre módulos y hace el código más flexible y mantenible.
+      </li>
+      <li>
+        <strong>Extensibilidad</strong>: añadir un nuevo tipo de producto solo requiere crear una nueva subclase
+        del creador, sin modificar el código existente. Se respeta el Principio Abierto/Cerrado.
+      </li>
+      <li>
+        <strong>Testabilidad</strong>: al depender de interfaces, es sencillo inyectar implementaciones de prueba
+        y escribir tests unitarios limpios y aislados.
+      </li>
+      <li>
+        <strong>Responsabilidad única</strong>: la lógica de creación queda centralizada en el creador, separándola
+        de la lógica de negocio del cliente.
+      </li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li>
+        <strong>Mayor complejidad inicial</strong>: introduce más clases e interfaces en el diseño, lo que puede
+        resultar excesivo para casos simples donde una única implementación es suficiente.
+      </li>
+      <li>
+        <strong>Jerarquía paralela</strong>: por cada nuevo producto concreto suele ser necesario crear también
+        un nuevo creador concreto, lo que puede llevar a una proliferación de clases difícil de gestionar en
+        proyectos muy grandes.
+      </li>
+      <li>
+        <strong>Curva de aprendizaje</strong>: para desarrolladores menos familiarizados con patrones de diseño,
+        el nivel de abstracción puede dificultar la comprensión inicial del flujo del programa.
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
