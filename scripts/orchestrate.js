@@ -26,10 +26,10 @@ const {
 // Validate required environment variables
 const requiredEnvVars = [
   ['CLAUDE_API_KEY', claudeConfig.apiKey],
-  ['GITHUB_TOKEN', githubConfig.token],
-  ['GITHUB_EMAIL', githubConfig.email],
-  ['GITHUB_USERNAME', githubConfig.username],
-  ['GITHUB_REPO', githubConfig.repository],
+  ['BLOG_GITHUB_TOKEN', githubConfig.token],
+  ['BLOG_GITHUB_EMAIL', githubConfig.email],
+  ['BLOG_GITHUB_USERNAME', githubConfig.username],
+  ['BLOG_GITHUB_REPO', githubConfig.repository],
 ];
 
 function validateEnv() {

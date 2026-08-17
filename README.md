@@ -86,10 +86,10 @@ CLAUDE_MAX_TOKENS=4096
 CLAUDE_LANGUAGE=Spanish
 CLAUDE_JAVA_LANGUAGE=English
 
-GITHUB_TOKEN=your-github-token
-GITHUB_EMAIL=your-github-email
-GITHUB_USERNAME=your-github-username
-GITHUB_REPO=your-user/blog-repository
+BLOG_GITHUB_TOKEN=your-github-token
+BLOG_GITHUB_EMAIL=your-github-email
+BLOG_GITHUB_USERNAME=your-github-username
+BLOG_GITHUB_REPO=your-user/blog-repository
 ```
 
 `CLAUDE_LANGUAGE` controls the blog post language. `CLAUDE_JAVA_LANGUAGE` controls the generated Java code comments, names, and README language.
@@ -286,11 +286,11 @@ node scripts/orchestrate.js
 Configure these repository secrets before enabling scheduled execution:
 
 - `CLAUDE_API_KEY`
-- `GITHUB_TOKEN`
-- `GITHUB_EMAIL`
-- `GITHUB_USERNAME`
+- `BLOG_GITHUB_TOKEN`
+- `BLOG_GITHUB_EMAIL`
+- `BLOG_GITHUB_USERNAME`
 
-`GITHUB_REPO` is supplied by the workflow from the current GitHub repository context.
+`BLOG_GITHUB_REPO` is supplied by the workflow from the current GitHub repository context.
 
 Before enabling the schedule, verify that the token used by Actions can create repositories for Java examples. The default GitHub Actions token may not have that permission.
 
@@ -300,7 +300,7 @@ Before enabling the schedule, verify that the token used by Actions can create r
 |---|---|
 | Missing Claude API key | Check `CLAUDE_API_KEY` in `.env` or GitHub Secrets. |
 | Invalid Claude response | Check the model, token limit, prompt, and API key. |
-| Git push failed | Check `GITHUB_TOKEN`, repository access, and Git identity. |
+| Git push failed | Check `BLOG_GITHUB_TOKEN`, repository access, and Git identity. |
 | Pull Request was not created | Check that the token can push branches and create Pull Requests. |
 | Java repository was not created | Check that the token can create repositories and push to them. |
 | Post is not visible on `main` | Merge the generated Pull Request. |
