@@ -32,19 +32,29 @@ jobs:
 
       - name: Configure git identity
         env:
-          GITHUB_EMAIL: ${{ secrets.GITHUB_EMAIL }}
-          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          BLOG_GITHUB_EMAIL: ${{ secrets.BLOG_GITHUB_EMAIL }}
+          BLOG_GITHUB_USERNAME: ${{ secrets.BLOG_GITHUB_USERNAME }}
         run: |
-          git config --global user.email "${GITHUB_EMAIL}"
-          git config --global user.name "${GITHUB_USERNAME}"
+          git config --global user.email "${BLOG_GITHUB_EMAIL}"
+          git config --global user.name "${BLOG_GITHUB_USERNAME}"
 
       - name: Run blog orchestrator
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_EMAIL: ${{ secrets.GITHUB_EMAIL }}
-          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-          GITHUB_REPO: ${{ github.repository }}
+          CLAUDE_API_URL: https://api.anthropic.com/v1/messages
+          CLAUDE_MODEL: claude-sonnet-4-6
+          CLAUDE_JAVA_MODEL: claude-opus-4-6
+          CLAUDE_VERSION: 2023-06-01
+          CLAUDE_TEMPERATURE: '0.3'
+          CLAUDE_MAX_TOKENS: '4096'
+          CLAUDE_JAVA_MAX_TOKENS: '16384'
+          CLAUDE_LANGUAGE: Spanish
+          CLAUDE_JAVA_LANGUAGE: English
+
+          BLOG_GITHUB_TOKEN: ${{ secrets.BLOG_GITHUB_TOKEN }}
+          BLOG_GITHUB_EMAIL: ${{ secrets.BLOG_GITHUB_EMAIL }}
+          BLOG_GITHUB_USERNAME: ${{ secrets.BLOG_GITHUB_USERNAME }}
+          BLOG_GITHUB_REPO: ${{ github.repository }}
           BLOG_LANGUAGE: es
           GITHUB_ACTIONS: 'true'
         run: node scripts/orchestrate.js
