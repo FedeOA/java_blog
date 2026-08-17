@@ -43,9 +43,11 @@ jobs:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_API_URL: https://api.anthropic.com/v1/messages
           CLAUDE_MODEL: claude-sonnet-4-6
+          CLAUDE_JAVA_MODEL: claude-opus-4-6
           CLAUDE_VERSION: 2023-06-01
           CLAUDE_TEMPERATURE: '0.3'
           CLAUDE_MAX_TOKENS: '4096'
+          CLAUDE_JAVA_MAX_TOKENS: '16384'
           CLAUDE_LANGUAGE: Spanish
           CLAUDE_JAVA_LANGUAGE: English
 

@@ -9,9 +9,15 @@ const SYSTEM_PROMPT = 'You are an expert Java developer focused on clear, runnab
 async function createJavaExample(topic, config, postMain) {
   console.log('\n☕ Agent: Java Example Publisher\n');
 
+  const javaConfig = {
+    ...config,
+    model: config.javaModel || config.model,
+    maxTokens: Number(config.javaMaxTokens || config.maxTokens || 4096)
+  };
+
   const exampleJson = await callClaudeAPI(
     buildPrompt(topic, postMain),
-    config,
+    javaConfig,
     SYSTEM_PROMPT,
     config.javaLanguage
   );
