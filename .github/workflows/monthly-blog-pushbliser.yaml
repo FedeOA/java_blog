@@ -1,0 +1,57 @@
+name: Monthly Blog Post Publisher
+
+on:
+  schedule:
+    - cron: '0 22 1 * *'  # primer día de cada mes a las 22:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git identity
+        env:
+          GITHUB_EMAIL: ${{ secrets.GITHUB_EMAIL }}
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+        run: |
+          git config --global user.email "${GITHUB_EMAIL}"
+          git config --global user.name "${GITHUB_USERNAME}"
+
+      - name: Run blog orchestrator
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EMAIL: ${{ secrets.GITHUB_EMAIL }}
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_REPO: ${{ github.repository }}
+          BLOG_LANGUAGE: es
+          GITHUB_ACTIONS: 'true'
+        run: node scripts/orchestrate.js
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Blog post and code example ready for review"
+          echo "📋 Review the Pull Request created in ${GITHUB_REPOSITORY}"
+          echo "🔗 After approval and merge, the post will be published"
