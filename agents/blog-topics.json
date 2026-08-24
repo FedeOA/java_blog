@@ -43,7 +43,7 @@
       "Object families",
       "Extensibility"
     ],
-    "priority": 3,
+    "priority": 18,
     "status": "pending"
   },
   {
@@ -58,7 +58,7 @@
       "Immutability",
       "Readable APIs"
     ],
-    "priority": 4,
+    "priority": 19,
     "status": "pending"
   },
   {
@@ -73,7 +73,7 @@
       "Cloning",
       "Performance"
     ],
-    "priority": 5,
+    "priority": 20,
     "status": "pending"
   },
   {
