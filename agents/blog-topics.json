@@ -89,7 +89,8 @@
       "Implementation"
     ],
     "priority": 6,
-    "status": "pending"
+    "status": "published",
+    "publishedAt": "2026-09-02T22:33:26.339Z"
   },
   {
     "title": "Composite en Java: Tratando objetos y grupos de forma uniforme",
