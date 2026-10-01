@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bridge en Java: Separando abstracción de implementación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bridge en Java: Separando abstracción de implementación</h1>
+    <p>Cómo separar la interfaz del comportamiento de la implementación para reducir el acoplamiento y facilitar extensiones.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Bridge?</h2>
+    <p>
+      El patrón <strong>Bridge</strong> es un patrón de diseño estructural que tiene como objetivo separar una abstracción de su implementación, de modo que ambas puedan evolucionar de forma independiente. En lugar de crear una jerarquía de clases que combine ambas dimensiones, Bridge las divide en dos jerarquías distintas conectadas mediante una referencia (el "puente").
+    </p>
+    <p>
+      Este patrón pertenece al catálogo original de los <em>Gang of Four</em> y resulta especialmente útil cuando una clase puede variar en múltiples dimensiones ortogonales. En lugar de multiplicar subclases para cubrir cada combinación posible, Bridge permite extender cada dimensión de forma independiente, reduciendo drásticamente la complejidad del sistema.
+    </p>
+    <p>
+      Dicho de forma sencilla: si tienes una abstracción que necesita diferentes implementaciones, y además esa abstracción puede tener variantes, Bridge es la herramienta adecuada para mantener el código limpio y extensible.
+    </p>
+  </section>
+
+  <section>
+    <h2>El problema: explosión de subclases</h2>
+    <p>
+      Imagina que estás desarrollando una aplicación que gestiona notificaciones. Tienes dos tipos de notificaciones (<code>EmailNotification</code> y <code>SMSNotification</code>) y dos niveles de urgencia (<code>Normal</code> y <code>Urgente</code>). Si usas herencia clásica, necesitarías cuatro clases:
+    </p>
+    <ul>
+      <li><code>NormalEmailNotification</code></li>
+      <li><code>UrgentEmailNotification</code></li>
+      <li><code>NormalSMSNotification</code></li>
+      <li><code>UrgentSMSNotification</code></li>
+    </ul>
+    <p>
+      Ahora añade un tercer canal, como <code>PushNotification</code>, y un tercer nivel de urgencia. El número de subclases crece de forma exponencial. Este fenómeno se conoce como <strong>explosión de subclases</strong> y hace que el código sea difícil de mantener, difícil de probar y muy frágil ante cambios.
+    </p>
+    <p>
+      El problema de fondo es que se están mezclando dos conceptos que deberían permanecer separados: <em>qué hace</em> la notificación (la abstracción) y <em>cómo lo hace</em> (la implementación). La herencia crea un acoplamiento rígido entre ambos, lo que impide que evolucionen de manera independiente.
+    </p>
+  </section>
+
+  <section>
+    <h2>La solución: conectar dos jerarquías independientes</h2>
+    <p>
+      Bridge resuelve este problema dividiendo el diseño en dos jerarquías separadas:
+    </p>
+    <ul>
+      <li><strong>Abstracción</strong>: define la interfaz de alto nivel que el cliente utiliza. Contiene una referencia a la implementación.</li>
+      <li><strong>Implementación</strong>: define la interfaz de bajo nivel que realiza el trabajo concreto.</li>
+    </ul>
+    <p>
+      La abstracción delega el trabajo real en el objeto de implementación. Gracias a esta separación, puedes añadir nuevas abstracciones o nuevas implementaciones sin modificar el código existente, respetando el principio <em>Open/Closed</em>.
+    </p>
+    <p>
+      Veamos cómo se traduce esto en código Java. Primero definimos la interfaz de implementación y sus implementaciones concretas:
+    </p>
+    <pre><code class="language-java">
+// Interfaz de implementación
+public interface MessageSender {
+    void sendMessage(String recipient, String message);
+}
+
+// Implementación concreta: Email
+public class EmailSender implements MessageSender {
+    @Override
+    public void sendMessage(String recipient, String message) {
+        System.out.println("[EMAIL] Para: " + recipient + " | Mensaje: " + message);
+    }
+}
+
+// Implementación concreta: SMS
+public class SMSSender implements MessageSender {
+    @Override
+    public void sendMessage(String recipient, String message) {
+        System.out.println("[SMS] Para: " + recipient + " | Mensaje: " + message);
+    }
+}
+
+// Implementación concreta: Push Notification
+public class PushSender implements MessageSender {
+    @Override
+    public void sendMessage(String recipient, String message) {
+        System.out.println("[PUSH] Para: " + recipient + " | Mensaje: " + message);
+    }
+}
+    </code></pre>
+    <p>
+      Ahora definimos la jerarquía de abstracción. La clase base <code>Notification</code> mantiene una referencia al <code>MessageSender</code> y delega en él el envío real:
+    </p>
+    <pre><code class="language-java">
+// Abstracción base
+public abstract class Notification {
+    protected MessageSender sender;
+
+    public Notification(MessageSender sender) {
+        this.sender = sender;
+    }
+
+    public abstract void notify(String recipient, String message);
+}
+
+// Abstracción refinada: notificación normal
+public class NormalNotification extends Notification {
+
+    public NormalNotification(MessageSender sender) {
+        super(sender);
+    }
+
+    @Override
+    public void notify(String recipient, String message) {
+        sender.sendMessage(recipient, message);
+    }
+}
+
+// Abstracción refinada: notificación urgente
+public class UrgentNotification extends Notification {
+
+    public UrgentNotification(MessageSender sender) {
+        super(sender);
+    }
+
+    @Override
+    public void notify(String recipient, String message) {
+        String urgentMessage = "🚨 URGENTE: " + message;
+        sender.sendMessage(recipient, urgentMessage);
+    }
+}
+    </code></pre>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <ul>
+      <li><strong>Abstraction (Abstracción)</strong>: clase base de la jerarquía de alto nivel. Define la interfaz que usa el cliente y mantiene una referencia al objeto <code>Implementor</code>. En el ejemplo, es <code>Notification</code>.</li>
+      <li><strong>RefinedAbstraction (Abstracción Refinada)</strong>: extiende la abstracción base añadiendo o modificando comportamiento. En el ejemplo, son <code>NormalNotification</code> y <code>UrgentNotification</code>.</li>
+      <li><strong>Implementor (Implementador)</strong>: interfaz de bajo nivel que define las operaciones concretas. En el ejemplo, es <code>MessageSender</code>.</li>
+      <li><strong>ConcreteImplementor (Implementador Concreto)</strong>: implementa la interfaz <code>Implementor</code> con lógica específica. En el ejemplo, son <code>EmailSender</code>, <code>SMSSender</code> y <code>PushSender</code>.</li>
+      <li><strong>Composición sobre herencia</strong>: la abstracción no hereda de la implementación, sino que la <em>contiene</em>. Esta es la clave del patrón y lo que lo diferencia de una simple herencia múltiple.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java: uso desde el cliente</h2>
+    <p>
+      Una vez definidas ambas jerarquías, el cliente puede combinarlas libremente en tiempo de ejecución sin necesidad de modificar ninguna clase existente:
+    </p>
+    <pre><code class="language-java">
+public class Main {
+    public static void main(String[] args) {
+
+        // Notificación normal por Email
+        Notification normalEmail = new NormalNotification(new EmailSender());
+        normalEmail.notify("usuario@ejemplo.com", "Tu pedido ha sido procesado.");
+
+        // Notificación urgente por SMS
+        Notification urgentSMS = new UrgentNotification(new SMSSender());
+        urgentSMS.notify("+34600000000", "Se ha detectado acceso no autorizado.");
+
+        // Notificación urgente por Push
+        Notification urgentPush = new UrgentNotification(new PushSender());
+        urgentPush.notify("device-token-xyz", "Tu contraseña ha sido cambiada.");
+
+        // Notificación normal por Push
+        Notification normalPush = new NormalNotification(new PushSender());
+        normalPush.notify("device-token-abc", "Tienes un nuevo mensaje.");
+    }
+}
+
+/*
+Salida esperada:
+[EMAIL] Para: usuario@ejemplo.com | Mensaje: Tu pedido ha sido procesado.
+[SMS] Para: +34600000000 | Mensaje: 🚨 URGENTE: Se ha detectado acceso no autorizado.
+[PUSH] Para: device-token-xyz | Mensaje: 🚨 URGENTE: Tu contraseña ha sido cambiada.
+[PUSH] Para: device-token-abc | Mensaje: Tienes un nuevo mensaje.
+*/
+    </code></pre>
+    <p>
+      Como puedes observar, añadir un nuevo canal de envío solo requiere crear una nueva clase que implemente <code>MessageSender</code>. Del mismo modo, añadir un nuevo tipo de notificación solo requiere extender <code>Notification</code>. Las dos jerarquías crecen de manera completamente independiente.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/bridge"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Cuando quieres evitar una jerarquía de clases que crezca exponencialmente al combinar múltiples dimensiones de variación.</li>
+      <li>Cuando necesitas poder cambiar la implementación en tiempo de ejecución sin afectar al cliente.</li>
+      <li>Cuando tanto la abstracción como la implementación deben poder extenderse mediante herencia de forma independiente.</li>
+      <li>Cuando trabajas con plataformas o entornos múltiples (por ejemplo, diferentes bases de datos, sistemas operativos o protocolos de red) y necesitas aislar el código de negocio de los detalles de cada plataforma.</li>
+      <li>Cuando quieres compartir una implementación entre múltiples objetos de abstracción sin que el cliente sea consciente de ello.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li><strong>Principio Open/Closed</strong>: puedes añadir nuevas abstracciones e implementaciones sin modificar el código existente.</li>
+      <li><strong>Principio de Responsabilidad Única</strong>: la abstracción se centra en la lógica de alto nivel y la implementación en los detalles concretos.</li>
+      <li><strong>Reducción del acoplamiento</strong>: el cliente solo conoce la abstracción, no los detalles de la implementación.</li>
+      <li><strong>Flexibilidad en tiempo de ejecución</strong>: la implementación puede cambiarse dinámicamente, lo que facilita la inyección de dependencias y las pruebas unitarias.</li>
+      <li><strong>Escalabilidad</strong>: elimina la explosión de subclases al permitir que dos dimensiones de variación crezcan de forma lineal en lugar de multiplicativa.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li><strong>Incremento de complejidad inicial</strong>: introducir dos jerarquías y una referencia entre ellas puede resultar excesivo para problemas simples donde solo existe una dimensión de variación.</li>
+      <li><strong>Mayor número de clases</strong>: aunque evita la explosión de subclases, sigue añadiendo más artefactos al proyecto, lo que puede dificultar la navegación del código si no se documenta correctamente.</li>
+      <li><strong>Indirección adicional</strong>: las llamadas pasan a través de la abstracción antes de llegar a la implementación, lo que introduce un nivel de indirección que puede resultar confuso para desarrolladores no familiarizados con el patrón.</li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
