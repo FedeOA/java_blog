@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Composite en Java: Tratando objetos y grupos de forma uniforme</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Composite en Java: Tratando objetos y grupos de forma uniforme</h1>
+    <p>Cómo modelar jerarquías de objetos usando Composite para tratar nodos y hojas con la misma API.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Composite?</h2>
+    <p>
+      El patrón <strong>Composite</strong> es un patrón de diseño estructural que permite componer objetos en estructuras de árbol para representar jerarquías parte-todo. Su característica más poderosa es que permite tratar tanto los objetos individuales (hojas) como las composiciones de objetos (nodos) de manera uniforme, usando la misma interfaz para ambos.
+    </p>
+    <p>
+      Imagina que estás modelando el sistema de archivos de un ordenador: tienes carpetas que pueden contener otras carpetas o archivos individuales. Desde el punto de vista del sistema, tanto una carpeta como un archivo deben poder ser tratados de la misma forma para operaciones como calcular el tamaño o listar el contenido. Esto es exactamente lo que Composite hace posible.
+    </p>
+    <p>
+      Este patrón pertenece a la categoría de <strong>patrones estructurales</strong>, definidos por la Gang of Four en su libro clásico <em>Design Patterns</em>, y su aplicación es especialmente valiosa cuando la lógica de negocio necesita operar sobre árboles de objetos sin distinguir si está tratando con un elemento simple o con un contenedor complejo.
+    </p>
+  </section>
+
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>
+      Cuando trabajamos con estructuras jerárquicas en Java, el enfoque más directo sería tratar los contenedores y los elementos individuales con clases completamente diferentes, usando comprobaciones de tipo (<code>instanceof</code>) para decidir qué operación aplicar en cada caso. Este enfoque genera código frágil, difícil de mantener y muy acoplado.
+    </p>
+    <p>
+      Por ejemplo, si tenemos un sistema de menús en una aplicación donde un menú puede contener ítems simples u otros submenús, el código cliente tendría que saber en todo momento con qué tipo de objeto está tratando. Cada vez que se agrega un nuevo tipo de componente, el código cliente debe modificarse. Esto viola el <strong>principio abierto/cerrado</strong> y el <strong>principio de responsabilidad única</strong>.
+    </p>
+    <p>
+      El resultado es una explosión de condicionales, duplicación de lógica y una arquitectura que se resiste al cambio. Composite elimina este problema al definir una interfaz común que tanto hojas como compuestos implementan, de modo que el cliente nunca necesita saber con cuál está interactuando.
+    </p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <p>El patrón Composite se articula en torno a tres participantes fundamentales:</p>
+    <ul>
+      <li>
+        <strong>Component (Componente)</strong>: es la interfaz o clase abstracta que define las operaciones comunes para todos los objetos de la jerarquía, tanto simples como compuestos. Es el contrato que unifica el tratamiento de hojas y nodos.
+      </li>
+      <li>
+        <strong>Leaf (Hoja)</strong>: representa los objetos básicos de la jerarquía, aquellos que no tienen hijos. Implementa el comportamiento base de la interfaz Component. Las hojas son los bloques de construcción fundamentales del árbol.
+      </li>
+      <li>
+        <strong>Composite (Compuesto)</strong>: es el nodo que puede contener otros componentes, tanto hojas como otros compuestos. Implementa la interfaz Component delegando las operaciones a sus hijos y puede agregar lógica adicional antes o después de dicha delegación.
+      </li>
+      <li>
+        <strong>Client (Cliente)</strong>: interactúa con todos los elementos a través de la interfaz Component, sin necesidad de conocer si está tratando con una hoja o un compuesto.
+      </li>
+    </ul>
+    <p>
+      La clave del patrón es que el <strong>Composite</strong> mantiene una colección de referencias a sus hijos de tipo <code>Component</code>, lo que le permite construir árboles de profundidad arbitraria de forma recursiva.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java: Sistema de archivos</h2>
+    <p>
+      Veamos cómo modelar un sistema de archivos simple usando Composite. Primero definimos la interfaz común y luego las implementaciones para archivos y directorios.
+    </p>
+    <pre><code class="language-java">
+// Component: interfaz común para archivos y directorios
+public interface FileSystemComponent {
+    String getName();
+    int getSize();
+    void print(String indent);
+}
+
+// Leaf: representa un archivo individual
+public class File implements FileSystemComponent {
+
+    private final String name;
+    private final int size;
+
+    public File(String name, int size) {
+        this.name = name;
+        this.size = size;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getSize() {
+        return size;
+    }
+
+    @Override
+    public void print(String indent) {
+        System.out.println(indent + "📄 " + name + " (" + size + " KB)");
+    }
+}
+
+// Composite: representa un directorio que puede contener archivos u otros directorios
+public class Directory implements FileSystemComponent {
+
+    private final String name;
+    private final List<FileSystemComponent> children = new ArrayList<>();
+
+    public Directory(String name) {
+        this.name = name;
+    }
+
+    public void add(FileSystemComponent component) {
+        children.add(component);
+    }
+
+    public void remove(FileSystemComponent component) {
+        children.remove(component);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getSize() {
+        return children.stream()
+                .mapToInt(FileSystemComponent::getSize)
+                .sum();
+    }
+
+    @Override
+    public void print(String indent) {
+        System.out.println(indent + "📁 " + name + " (" + getSize() + " KB)");
+        for (FileSystemComponent child : children) {
+            child.print(indent + "    ");
+        }
+    }
+}
+    </code></pre>
+    <p>
+      Observa que el método <code>getSize()</code> en <code>Directory</code> delega recursivamente en sus hijos. No importa si un hijo es un <code>File</code> o un <code>Directory</code> anidado: ambos responden al mismo mensaje gracias a la interfaz común.
+    </p>
+  </section>
+
+  <section>
+    <h2>Usando el Composite: el cliente en acción</h2>
+    <p>
+      Veamos ahora cómo el código cliente construye y opera sobre el árbol de componentes de forma completamente uniforme, sin ningún <code>instanceof</code> ni lógica condicional basada en tipos:
+    </p>
+    <pre><code class="language-java">
+public class CompositeDemo {
+
+    public static void main(String[] args) {
+
+        // Creamos archivos individuales (hojas)
+        File readme = new File("README.md", 5);
+        File main = new File("Main.java", 20);
+        File utils = new File("Utils.java", 15);
+        File config = new File("config.yml", 3);
+        File logo = new File("logo.png", 150);
+
+        // Creamos directorios (compuestos)
+        Directory src = new Directory("src");
+        src.add(main);
+        src.add(utils);
+
+        Directory resources = new Directory("resources");
+        resources.add(config);
+        resources.add(logo);
+
+        Directory project = new Directory("my-project");
+        project.add(readme);
+        project.add(src);
+        project.add(resources);
+
+        // El cliente trata todo con la misma interfaz
+        System.out.println("=== Estructura del proyecto ===");
+        project.print("");
+
+        System.out.println("\nTamaño total del proyecto: " + project.getSize() + " KB");
+        System.out.println("Tamaño de /src: " + src.getSize() + " KB");
+        System.out.println("Tamaño de README.md: " + readme.getSize() + " KB");
+    }
+}
+
+/*
+Salida esperada:
+=== Estructura del proyecto ===
+📁 my-project (193 KB)
+    📄 README.md (5 KB)
+    📁 src (35 KB)
+        📄 Main.java (20 KB)
+        📄 Utils.java (15 KB)
+    📁 resources (153 KB)
+        📄 config.yml (3 KB)
+        📄 logo.png (150 KB)
+
+Tamaño total del proyecto: 193 KB
+Tamaño de /src: 35 KB
+Tamaño de README.md: 5 KB
+*/
+    </code></pre>
+    <p>
+      El cliente llama a <code>getSize()</code> y <code>print()</code> indiferentemente sobre <code>project</code>, <code>src</code> o <code>readme</code>. La recursividad del patrón se encarga del resto de forma transparente.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/composite"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Cuando necesitas representar <strong>jerarquías parte-todo</strong> de objetos, como árboles de componentes de UI, estructuras de menús, organigramas o sistemas de archivos.</li>
+      <li>Cuando quieres que el código cliente pueda <strong>ignorar la diferencia</strong> entre objetos simples y compuestos, interactuando con ambos a través de una interfaz uniforme.</li>
+      <li>Cuando la estructura del árbol puede variar en profundidad y anchura de forma dinámica en tiempo de ejecución y necesitas que el sistema lo soporte sin cambios en el cliente.</li>
+      <li>En el contexto de frameworks de <strong>renderizado de interfaces gráficas</strong>, donde paneles contienen widgets que a su vez pueden contener otros paneles.</li>
+      <li>Al modelar <strong>expresiones matemáticas o lógicas</strong> donde los operadores contienen operandos que pueden ser valores simples u otras expresiones.</li>
+      <li>En sistemas de <strong>permisos o roles jerárquicos</strong>, donde un grupo de permisos puede contener permisos individuales u otros grupos.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li><strong>Uniformidad en el tratamiento:</strong> el cliente trabaja con hojas y compuestos usando la misma interfaz, simplificando enormemente el código y eliminando condicionales basados en tipos.</li>
+      <li><strong>Extensibilidad sencilla:</strong> agregar nuevos tipos de componentes (nuevas hojas o nuevos tipos de compuestos) no requiere modificar el código cliente ni las clases existentes, respetando el principio abierto/cerrado.</li>
+      <li><strong>Recursividad natural:</strong> las operaciones sobre estructuras de árbol se implementan de forma limpia y elegante mediante la delegación recursiva, sin necesitar algoritmos externos complejos.</li>
+      <li><strong>Modularidad:</strong> es fácil construir estructuras complejas combinando componentes simples, favoreciendo la reutilización y la composición sobre la herencia.</li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li><strong>Interfaz demasiado general:</strong> al unificar la interfaz para hojas y compuestos, a veces se incluyen operaciones (como <code>add()</code> o <code>remove()</code>) que no tienen sentido en las hojas, lo que puede llevar a implementaciones vacías o excepciones en tiempo de ejecución.</li>
+      <li><strong>Dificultad para restringir tipos de hijos:</strong> el sistema de tipos de Java no siempre permite imponer restricciones sobre qué tipos de componentes puede contener un compuesto concreto, requiriendo validaciones en tiempo de ejecución.</li>
+      <li><strong>Complejidad oculta:</strong> el comportamiento recursivo puede dificultar el depurado cuando los árboles son muy profundos o cuando una operación produce efectos inesperados por la delegación en cascada.</li>
+      <li><strong>Rendimiento en árboles grandes:</strong> operaciones como <code>getSize()</code> que recorren todo el árbol en cada llamada pueden ser costosas si la jerarquía es muy extensa y no se implementa algún mecanismo de caché.</li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
