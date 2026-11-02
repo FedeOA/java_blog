@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decorator en Java: Agregando comportamiento sin modificar clases</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <style>
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      background-color: #238636;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .github-link:hover {
+      background-color: #2ea043;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Decorator en Java: Agregando comportamiento sin modificar clases</h1>
+    <p>Cómo extender responsabilidades dinámicamente mediante Decorator sin tocar el código base existente.</p>
+  </header>
+
+  <nav>
+    <a href="../design-patterns.html">← Volver a la categoría</a>
+  </nav>
+
+  <main class="post">
+
+  <section>
+    <h2>¿Qué es el patrón Decorator?</h2>
+    <p>
+      El patrón <strong>Decorator</strong> es un patrón de diseño estructural que permite agregar
+      comportamiento adicional a un objeto de forma dinámica, en tiempo de ejecución, sin necesidad
+      de modificar su clase original ni crear una jerarquía de subclases interminable. En lugar de
+      heredar, el Decorator <em>envuelve</em> al objeto original y delega las llamadas a él,
+      añadiendo lógica antes o después de cada operación.
+    </p>
+    <p>
+      Este patrón es especialmente valioso cuando necesitamos combinar varias responsabilidades de
+      manera flexible. Imagina un sistema de notificaciones donde un mensaje puede enviarse por
+      email, también loguearse, también cifrarse y también comprimirse: con Decorator, cada una de
+      esas capacidades se convierte en una capa independiente que podemos apilar a voluntad.
+    </p>
+    <p>
+      En el ecosistema Java, el ejemplo más clásico lo encontramos en el paquete
+      <code>java.io</code>: <code>BufferedReader</code> decora a <code>FileReader</code>,
+      <code>DataInputStream</code> decora a <code>FileInputStream</code>, y así sucesivamente.
+      Toda esa cadena de envolvimiento es Decorator en acción.
+    </p>
+  </section>
+
+  <section>
+    <h2>Problema que resuelve</h2>
+    <p>
+      Supongamos que tenemos un servicio de texto que formatea un mensaje. Con el tiempo, el negocio
+      pide que algunos mensajes vayan en mayúsculas, otros con un prefijo especial, otros con ambas
+      cosas, y quizá en el futuro con marcas de tiempo. Si resolvemos esto con herencia, la
+      explosión de subclases es inevitable:
+    </p>
+    <ul>
+      <li><code>TextoEnMayusculas</code></li>
+      <li><code>TextoConPrefijo</code></li>
+      <li><code>TextoEnMayusculasConPrefijo</code></li>
+      <li><code>TextoConMarcaDeTiempo</code></li>
+      <li><code>TextoEnMayusculasConMarcaDeTiempo</code></li>
+      <li>… y así al infinito.</li>
+    </ul>
+    <p>
+      Cada combinación nueva implica una clase nueva. Esto viola el principio
+      <strong>Open/Closed</strong> (abierto para extensión, cerrado para modificación) y hace que
+      el código sea muy difícil de mantener. Además, si queremos cambiar el comportamiento de un
+      objeto concreto en tiempo de ejecución según alguna condición, la herencia directamente no
+      nos lo permite.
+    </p>
+    <p>
+      El patrón Decorator resuelve exactamente este problema: en lugar de crear subclases para cada
+      combinación posible, creamos pequeñas clases decoradoras que se pueden encadenar libremente.
+    </p>
+  </section>
+
+  <section>
+    <h2>Estructura y conceptos principales</h2>
+    <p>
+      El patrón se compone de cuatro elementos fundamentales que trabajan en conjunto:
+    </p>
+    <ul>
+      <li>
+        <strong>Componente (interfaz o clase abstracta)</strong>: Define la operación o contrato
+        que tanto el componente concreto como los decoradores deben respetar. Es el tipo común
+        que permite intercambiarlos.
+      </li>
+      <li>
+        <strong>Componente Concreto</strong>: La implementación base del componente. Es el objeto
+        "real" al que se le quiere agregar comportamiento. No conoce ni depende de ningún
+        decorador.
+      </li>
+      <li>
+        <strong>Decorador Base</strong>: Clase abstracta (o concreta) que implementa el componente
+        y mantiene una referencia al mismo mediante composición. Delega las llamadas al componente
+        envuelto. Sirve como punto de extensión para todos los decoradores concretos.
+      </li>
+      <li>
+        <strong>Decoradores Concretos</strong>: Extienden al decorador base y añaden el
+        comportamiento específico antes o después de delegar al componente. Cada decorador tiene
+        una única responsabilidad.
+      </li>
+    </ul>
+    <p>
+      La clave está en la <strong>composición</strong>: un decorador envuelve a otro decorador, que
+      a su vez envuelve al componente concreto, formando una cadena. El cliente solo conoce la
+      interfaz del componente y no necesita saber cuántas capas hay por debajo.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo en Java</h2>
+    <p>
+      Veamos el patrón aplicado a un formateador de texto. Primero definimos la interfaz y el
+      componente concreto:
+    </p>
+    <pre><code class="language-java">
+// Componente: interfaz común
+public interface FormateadorTexto {
+    String formatear(String texto);
+}
+
+// Componente Concreto: implementación base sin decoraciones
+public class TextoSimple implements FormateadorTexto {
+
+    @Override
+    public String formatear(String texto) {
+        return texto;
+    }
+}
+
+// Decorador Base: mantiene referencia al componente y delega
+public abstract class DecoradorTexto implements FormateadorTexto {
+
+    private final FormateadorTexto envuelto;
+
+    public DecoradorTexto(FormateadorTexto envuelto) {
+        this.envuelto = envuelto;
+    }
+
+    @Override
+    public String formatear(String texto) {
+        return envuelto.formatear(texto);
+    }
+}
+    </code></pre>
+
+    <p>
+      Ahora creamos dos decoradores concretos: uno que convierte el texto a mayúsculas y otro que
+      agrega un prefijo personalizado:
+    </p>
+    <pre><code class="language-java">
+// Decorador Concreto 1: convierte el resultado a mayúsculas
+public class DecoradorMayusculas extends DecoradorTexto {
+
+    public DecoradorMayusculas(FormateadorTexto envuelto) {
+        super(envuelto);
+    }
+
+    @Override
+    public String formatear(String texto) {
+        return super.formatear(texto).toUpperCase();
+    }
+}
+
+// Decorador Concreto 2: agrega un prefijo al resultado
+public class DecoradorPrefijo extends DecoradorTexto {
+
+    private final String prefijo;
+
+    public DecoradorPrefijo(FormateadorTexto envuelto, String prefijo) {
+        super(envuelto);
+        this.prefijo = prefijo;
+    }
+
+    @Override
+    public String formatear(String texto) {
+        return prefijo + super.formatear(texto);
+    }
+}
+
+// Decorador Concreto 3: agrega una marca de tiempo al final
+public class DecoradorMarcaTiempo extends DecoradorTexto {
+
+    public DecoradorMarcaTiempo(FormateadorTexto envuelto) {
+        super(envuelto);
+    }
+
+    @Override
+    public String formatear(String texto) {
+        long timestamp = System.currentTimeMillis();
+        return super.formatear(texto) + " [" + timestamp + "]";
+    }
+}
+    </code></pre>
+
+    <p>
+      Finalmente, combinamos los decoradores en tiempo de ejecución según las necesidades del
+      cliente:
+    </p>
+    <pre><code class="language-java">
+public class Main {
+
+    public static void main(String[] args) {
+
+        // Solo el componente base
+        FormateadorTexto simple = new TextoSimple();
+        System.out.println(simple.formatear("hola mundo"));
+        // Salida: hola mundo
+
+        // Texto en mayúsculas
+        FormateadorTexto mayusculas = new DecoradorMayusculas(new TextoSimple());
+        System.out.println(mayusculas.formatear("hola mundo"));
+        // Salida: HOLA MUNDO
+
+        // Prefijo + mayúsculas: apilamos decoradores
+        FormateadorTexto conPrefijo = new DecoradorPrefijo(
+            new DecoradorMayusculas(new TextoSimple()),
+            ">> "
+        );
+        System.out.println(conPrefijo.formatear("hola mundo"));
+        // Salida: >> HOLA MUNDO
+
+        // Prefijo + mayúsculas + marca de tiempo
+        FormateadorTexto completo = new DecoradorMarcaTiempo(
+            new DecoradorPrefijo(
+                new DecoradorMayusculas(new TextoSimple()),
+                ">> "
+            )
+        );
+        System.out.println(completo.formatear("hola mundo"));
+        // Salida: >> HOLA MUNDO [1718123456789]
+    }
+}
+    </code></pre>
+    <p>
+      Observa cómo cada combinación se construye componiendo objetos, sin crear ninguna clase nueva.
+      El orden de apilamiento importa: el decorador más externo es el último en ejecutarse sobre el
+      resultado final.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ejemplo completo</h2>
+    <a
+      class="github-link"
+      href="https://github.com/FedeOA/decorator"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Ver ejemplo completo en GitHub
+    </a>
+  </section>
+
+  <section>
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>
+        Cuando necesitas agregar responsabilidades a objetos individuales de manera dinámica y
+        transparente, sin afectar a otros objetos de la misma clase.
+      </li>
+      <li>
+        Cuando la herencia no es viable porque el número de combinaciones posibles de
+        comportamientos haría explotar la jerarquía de clases.
+      </li>
+      <li>
+        Cuando quieres seguir el principio <strong>Open/Closed</strong>: extender el comportamiento
+        sin tocar el código existente, reduciendo el riesgo de introducir errores en funcionalidad
+        ya probada.
+      </li>
+      <li>
+        Cuando trabajas con funcionalidades transversales como logging, caché, validación,
+        compresión o cifrado, que pueden aplicarse de forma independiente sobre distintas
+        implementaciones.
+      </li>
+      <li>
+        Cuando el comportamiento a añadir puede retirarse fácilmente: al ser composición, basta con
+        no incluir ese decorador en la cadena.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ventajas y desventajas</h2>
+    <h3>Ventajas</h3>
+    <ul>
+      <li>
+        <strong>Flexibilidad en tiempo de ejecución</strong>: los comportamientos se pueden agregar
+        y combinar dinámicamente sin recompilar ni modificar clases existentes.
+      </li>
+      <li>
+        <strong>Principio de responsabilidad única</strong>: cada decorador tiene una única
+        función bien definida, lo que facilita el mantenimiento y las pruebas unitarias
+        independientes.
+      </li>
+      <li>
+        <strong>Alternativa limpia a la herencia</strong>: evita jerarquías profundas y la
+        duplicación de código que surge cuando se intenta modelar combinaciones mediante subclases.
+      </li>
+      <li>
+        <strong>Composición abierta</strong>: el cliente puede construir la cadena que necesita,
+        incluso con decoradores definidos en módulos o librerías separadas.
+      </li>
+    </ul>
+    <h3>Desventajas</h3>
+    <ul>
+      <li>
+        <strong>Depuración más compleja</strong>: al haber varias capas de envolvimiento, rastrear
+        un error en el stack trace puede ser más difícil, ya que el flujo de ejecución atraviesa
+        múltiples clases antes de llegar al componente concreto.
+      </li>
+      <li>
+        <strong>Proliferación de objetos pequeños</strong>: si la cadena de decoradores crece
+        mucho, se crean muchos objetos anidados que pueden afectar la legibilidad del código de
+        construcción y, en casos extremos, la memoria.
+      </li>
+      <li>
+        <strong>El orden importa</strong>: el resultado puede variar según cómo se apilen los
+        decoradores, lo que requiere un entendimiento claro del comportamiento de cada uno y puede
+        generar errores sutiles si el orden no es el esperado.
+      </li>
+      <li>
+        <strong>No apto para modificar la interfaz</strong>: el Decorator solo puede extender el
+        comportamiento de los métodos definidos en el componente. Si necesitas agregar métodos
+        nuevos, este patrón no es la herramienta adecuada.
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+  <footer>
+    <p>© 2025 Federico Oscar Acosta</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
